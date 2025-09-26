@@ -1,0 +1,141 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* App baseline styling */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  background: linear-gradient(135deg, #0b1020 0%, #101733 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Custom gamified styles */
+.card-glow {
+  box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+.card-glow:hover {
+  box-shadow: 0 0 30px rgba(255, 46, 136, 0.4);
+}
+
+.neon-text {
+  text-shadow: 0 0 10px rgba(0, 234, 255, 0.6);
+  color: #00eaff;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #0b1020 0%, #101733 50%, #141e46 100%);
+}
+
+.language-card {
+  background: linear-gradient(135deg, #ffd23f 0%, #ff6b35 100%);
+  border: none;
+  border-radius: 20px;
+  padding: 2rem;
+  color: #0b1020;
+  font-weight: bold;
+  font-size: 1.5rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.language-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(255, 210, 63, 0.4);
+}
+
+.level-card {
+  background: rgba(20, 30, 70, 0.8);
+  border: 1px solid rgba(0, 234, 255, 0.3);
+  border-radius: 15px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.level-card:hover {
+  border-color: rgba(255, 46, 136, 0.5);
+  box-shadow: 0 5px 20px rgba(0, 234, 255, 0.2);
+}
+
+.progress-bar-custom {
+  background: linear-gradient(90deg, #00eaff 0%, #00f59b 100%);
+  border-radius: 10px;
+}
+
+.profile-button {
+  background: rgba(0, 234, 255, 0.2);
+  border: 1px solid #00eaff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.profile-button:hover {
+  background: rgba(0, 234, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 234, 255, 0.4);
+  color: white;
+}
+
+.modal-content-custom {
+  background: rgba(20, 30, 70, 0.95);
+  border: 1px solid rgba(0, 234, 255, 0.3);
+  border-radius: 15px;
+  color: white;
+}
+
+.form-control-custom {
+  background: rgba(20, 30, 70, 0.8);
+  border: 1px solid rgba(0, 234, 255, 0.3);
+  color: white;
+  border-radius: 8px;
+}
+
+.form-control-custom:focus {
+  background: rgba(20, 30, 70, 0.9);
+  border-color: #00eaff;
+  box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
+  color: white;
+}
+
+.btn-neon {
+  background: linear-gradient(135deg, #ff2e88 0%, #ff6b35 100%);
+  border: none;
+  color: #0b1020;
+  font-weight: bold;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-neon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 46, 136, 0.4);
+  color: #0b1020;
+}
+
+.btn-completed {
+  background: #00f59b;
+  color: #0b1020;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.btn-secondary-custom {
+  background: rgba(20, 30, 70, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  border-radius: 8px;
+}
+
+.btn-secondary-custom:hover {
+  background: rgba(20, 30, 70, 1);
+  color: white;
+}
