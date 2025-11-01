@@ -1,141 +1,216 @@
+/* src/index.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto+Mono:wght@400;700&display=swap');
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
-/* App baseline styling */
-html, body, #root {
-  height: 100%;
+/* ------------------------------------------------------------------- */
+/* 1. Root Variables & Global Styles (Dark Neon Theme) */
+/* ------------------------------------------------------------------- */
+
+/* src/index.css */
+/* ------------------------------------------------------------------- */
+/* 1. Root Variables & Global Styles (Dark Neon Theme) */
+/* ------------------------------------------------------------------- */
+
+:root {
+    /* Primary Colors matching the screenshot */
+    --color-background-dark: #0b1020; /* Deep dark navy */
+    --color-primary-neon: #00eaff;    /* Bright cyan/aqua for buttons and glow */
+    --color-accent-cyan: #00eaff;
+    --color-form-bg: #151a2d;        /* Darker grey for input fields */
+    --color-text-light: #e0e0e0;     /* Light text */
+    --color-text-muted: #8b909f;     /* Slightly darker light grey for secondary text */
+    --color-form-border: #00eaff66;  /* Semi-transparent neon border */
+}
+
+
+html,
+body,
+#root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
 body {
-  background: linear-gradient(135deg, #0b1020 0%, #101733 100%);
-  color: white;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--color-background-dark);
+    color: var(--color-text-light);
+    font-family: 'Roboto Mono', monospace; /* Modern, techy font */
+    line-height: 1.6;
 }
 
-/* Custom gamified styles */
-.card-glow {
-  box-shadow: 0 0 20px rgba(0, 234, 255, 0.3);
-  transition: box-shadow 0.3s ease;
-}
+/* ------------------------------------------------------------------- */
+/* 2. Layout & Utilities */
+/* ------------------------------------------------------------------- */
 
-.card-glow:hover {
-  box-shadow: 0 0 30px rgba(255, 46, 136, 0.4);
+.gradient-bg {
+    background: linear-gradient(180deg, var(--color-background-dark) 0%, #080c18 100%);
 }
 
 .neon-text {
-  text-shadow: 0 0 10px rgba(0, 234, 255, 0.6);
-  color: #00eaff;
+    font-family: 'Press Start 2P', cursive; /* Retro arcade font for headers */
+    color: var(--color-primary-neon);
+    text-shadow: 
+        0 0 5px var(--color-primary-neon),
+        0 0 10px var(--color-primary-neon),
+        0 0 15px rgba(0, 234, 255, 0.5);
+    /* Responsive size */
+    font-size: 1.5rem; 
 }
 
-.gradient-bg {
-  background: linear-gradient(135deg, #0b1020 0%, #101733 50%, #141e46 100%);
+@media (min-width: 768px) {
+    .neon-text {
+        font-size: 2rem;
+    }
 }
 
-.language-card {
-  background: linear-gradient(135deg, #ffd23f 0%, #ff6b35 100%);
-  border: none;
-  border-radius: 20px;
-  padding: 2rem;
-  color: #0b1020;
-  font-weight: bold;
-  font-size: 1.5rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.text-light-50 {
+    color: rgba(224, 224, 224, 0.7) !important;
 }
 
-.language-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(255, 210, 63, 0.4);
-}
-
-.level-card {
-  background: rgba(20, 30, 70, 0.8);
-  border: 1px solid rgba(0, 234, 255, 0.3);
-  border-radius: 15px;
-  padding: 1.5rem;
-  transition: all 0.3s ease;
-}
-
-.level-card:hover {
-  border-color: rgba(255, 46, 136, 0.5);
-  box-shadow: 0 5px 20px rgba(0, 234, 255, 0.2);
-}
-
-.progress-bar-custom {
-  background: linear-gradient(90deg, #00eaff 0%, #00f59b 100%);
-  border-radius: 10px;
-}
-
-.profile-button {
-  background: rgba(0, 234, 255, 0.2);
-  border: 1px solid #00eaff;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  transition: all 0.3s ease;
-}
-
-.profile-button:hover {
-  background: rgba(0, 234, 255, 0.3);
-  box-shadow: 0 0 15px rgba(0, 234, 255, 0.4);
-  color: white;
-}
-
-.modal-content-custom {
-  background: rgba(20, 30, 70, 0.95);
-  border: 1px solid rgba(0, 234, 255, 0.3);
-  border-radius: 15px;
-  color: white;
-}
+/* ------------------------------------------------------------------- */
+/* 3. Form Styling (Inputs & Auth) */
+/* ------------------------------------------------------------------- */
 
 .form-control-custom {
-  background: rgba(20, 30, 70, 0.8);
-  border: 1px solid rgba(0, 234, 255, 0.3);
-  color: white;
-  border-radius: 8px;
+    background-color: var(--color-form-bg);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: var(--color-text-light);
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: all 0.3s;
 }
 
 .form-control-custom:focus {
-  background: rgba(20, 30, 70, 0.9);
-  border-color: #00eaff;
-  box-shadow: 0 0 10px rgba(0, 234, 255, 0.3);
-  color: white;
+    background-color: var(--color-form-bg);
+    color: var(--color-text-light);
+    border-color: var(--color-primary-neon);
+    box-shadow: 0 0 0 0.25rem rgba(0, 234, 255, 0.3);
 }
 
+.form-text {
+    font-size: 0.75rem;
+    padding-left: 5px;
+    color: var(--color-text-muted) !important; /* Ensure this style is applied */
+}
+
+/* ------------------------------------------------------------------- */
+/* 4. Button Styling */
+/* ------------------------------------------------------------------- */
+
+/* Primary Neon Button */
 .btn-neon {
-  background: linear-gradient(135deg, #ff2e88 0%, #ff6b35 100%);
-  border: none;
-  color: #0b1020;
-  font-weight: bold;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+    background: var(--color-primary-neon);
+    color: var(--color-background-dark);
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    height: 50px;
+    box-shadow: 0 0 10px var(--color-primary-neon), 0 0 20px rgba(0, 234, 255, 0.5);
+    transition: all 0.2s ease-in-out;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .btn-neon:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(255, 46, 136, 0.4);
-  color: #0b1020;
+    background: #2affff;
+    box-shadow: 0 0 15px #2affff, 0 0 30px rgba(0, 234, 255, 0.7);
+    transform: translateY(-1px);
+    color: var(--color-background-dark);
 }
 
-.btn-completed {
-  background: #00f59b;
-  color: #0b1020;
-  border: none;
-  border-radius: 8px;
-  font-weight: bold;
+.btn-neon:disabled {
+    background-color: var(--color-form-bg);
+    color: var(--color-text-muted);
+    box-shadow: none;
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
 }
 
-.btn-secondary-custom {
-  background: rgba(20, 30, 70, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  border-radius: 8px;
+/* Google Sign-In Button */
+.btn-google-custom {
+    background-color: var(--color-form-bg);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: var(--color-text-light);
+    border-radius: 8px;
+    height: 50px;
+    transition: background-color 0.3s ease;
 }
 
-.btn-secondary-custom:hover {
-  background: rgba(20, 30, 70, 1);
-  color: white;
+.btn-google-custom:hover {
+    background-color: #202640; 
+    border-color: var(--color-accent-cyan);
+}
+
+/* Logout Button */
+.btn-logout {
+    background: none;
+    border: 1px solid var(--color-text-muted);
+    color: var(--color-text-light);
+    border-radius: 8px;
+    padding: 8px 15px;
+    transition: all 0.3s;
+}
+
+.btn-logout:hover {
+    border-color: var(--color-primary-neon);
+    color: var(--color-primary-neon);
+}
+
+/* ------------------------------------------------------------------- */
+/* 5. Card and Component Styling (Glows and effects) */
+/* ------------------------------------------------------------------- */
+
+.card-glow {
+    border: 1px solid rgba(0, 234, 255, 0.2);
+    box-shadow: 0 0 5px rgba(0, 234, 255, 0.1);
+    background-color: var(--color-form-bg);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+}
+
+.card-glow:hover {
+    border-color: rgba(0, 234, 255, 0.5);
+    box-shadow: 0 0 15px rgba(0, 234, 255, 0.3), 0 0 5px rgba(0, 234, 255, 0.1);
+}
+/* src/index.css */
+
+/* Add these styles to the bottom */
+
+.level-container {
+    background-color: var(--color-form-bg);
+    border: 1px solid var(--color-form-border);
+    border-radius: 12px;
+}
+
+.theory-content {
+    background-color: #050810;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--color-text-light);
+    border-radius: 8px;
+    padding: 1.5rem !important;
+    text-align: left;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.btn-quiz {
+    background-color: var(--color-form-bg);
+    border: 1px solid var(--color-form-border);
+    color: var(--color-text-light);
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.btn-quiz:hover {
+    background-color: #1a223a;
+    border-color: var(--color-primary-neon);
+}
+
+.btn-quiz.selected {
+    border-color: #ffcc00; /* Selection highlight */
+    background-color: #1a223a;
 }
