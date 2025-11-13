@@ -6,61 +6,98 @@
 */
 
 .language-select-page {
-    /* Use the gradient background from index.css or a static dark color */
-    background: linear-gradient(135deg, #0b1020 0%, #101733 50%, #141e46 100%);
+    background: linear-gradient(145deg, rgba(16, 23, 52, 0.95) 0%, rgba(9, 14, 34, 0.98) 55%, rgba(8, 12, 28, 0.98) 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.language-select-page::after {
+    content: '';
+    position: absolute;
+    inset: -120px;
+    background: radial-gradient(circle at 15% 20%, rgba(92, 107, 255, 0.18), transparent 55%),
+                radial-gradient(circle at 85% 70%, rgba(255, 95, 171, 0.18), transparent 50%);
+    filter: blur(40px);
+    z-index: 0;
+}
+
+.language-select-page > * {
+    position: relative;
+    z-index: 1;
 }
 
 /* User Greeting (Top Left) */
 .user-greeting {
     color: var(--color-text-light);
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    letter-spacing: 0.03em;
 }
 
 /* Logout Button Styling */
 .btn-logout {
-    /* Inverse color scheme for a clear exit button */
     background-color: transparent;
-    border: 1px solid #ff4141; /* Neon red border */
-    color: #ff4141;
-    font-weight: bold;
-    border-radius: 8px;
-    transition: all 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: var(--color-text-light);
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 0.65rem 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    transition: all 0.2s ease;
 }
 
 .btn-logout:hover {
-    background-color: #ff4141;
-    color: var(--color-background-dark);
-    box-shadow: 0 0 10px #ff4141;
+    background: linear-gradient(135deg, rgba(255, 95, 171, 0.25), rgba(92, 107, 255, 0.25));
+    box-shadow: 0 12px 26px rgba(8, 12, 28, 0.45);
+    border-color: rgba(255, 95, 171, 0.45);
+    color: #fff;
 }
 
-
-/* Main Title Animation */
 .language-title {
-    font-size: 3rem;
-    letter-spacing: 5px;
-    padding-bottom: 10px;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    letter-spacing: 0.4em;
+    padding-bottom: 14px;
+    font-family: 'Orbitron', sans-serif;
 }
 
 /* Language Cards Customization (to ensure text visibility and size) */
 .language-card {
-    /* Override base card styles for larger buttons */
-    min-height: 150px;
-    font-size: 1.8rem;
-    font-family: 'Press Start 2P', cursive;
-    color: #0b1020 !important; /* Ensure dark text on bright card */
+    min-height: 160px;
+    font-size: clamp(1.3rem, 3vw, 1.8rem);
+    font-family: 'Orbitron', sans-serif;
+    color: var(--color-text-light) !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-shadow: none;
     text-transform: uppercase;
-    
-    /* Re-define the card glow for better visibility */
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-    border: none;
-    border-radius: 15px;
+    letter-spacing: 0.18em;
+    background: linear-gradient(135deg, rgba(92, 107, 255, 0.8), rgba(255, 95, 171, 0.8));
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 16px 32px rgba(8, 12, 28, 0.6), 0 0 18px rgba(92, 107, 255, 0.35);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.language-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.18), transparent 55%),
+                radial-gradient(circle at 80% 65%, rgba(255, 255, 255, 0.12), transparent 60%);
+    opacity: 0.9;
+    mix-blend-mode: screen;
+}
+
+.language-card > span,
+.language-card > div,
+.language-card > h3 {
+    position: relative;
+    z-index: 1;
 }
 
 .language-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(255, 210, 63, 0.6); /* Use one of the gradient colors for the glow */
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 22px 40px rgba(8, 12, 28, 0.7), 0 0 26px rgba(255, 95, 171, 0.4);
 }

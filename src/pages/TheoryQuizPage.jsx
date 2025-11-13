@@ -151,6 +151,7 @@ export default function TheoryQuizPage() {
           questions={levelData.quiz}
           onComplete={handleQuizComplete}
           maxXP={levelData.xp || 0}
+          timeLimit={levelData.timeLimit}
         />
       )
     }
