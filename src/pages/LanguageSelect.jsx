@@ -60,7 +60,27 @@ export default function LanguageSelect() {
           </h2>
         </div>
         
-        <div className="d-flex align-items-center gap-3 ms-auto">
+        <div className="d-flex align-items-center gap-3 ms-auto flex-wrap">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/practice')}
+            className="btn btn-outline-warning"
+            title="Go to Practice Center"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            🎯 Practice Center
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/leaderboard')}
+            className="btn btn-outline-info"
+            title="View Leaderboard"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            🏆 Leaderboard
+          </motion.button>
           <ProfileMenu /> 
           <motion.button 
             whileHover={{ scale: 1.05 }}
