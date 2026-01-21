@@ -17,9 +17,9 @@ export default function Login() {
 
   // 1. useEffect: This handles redirection AFTER authentication is complete
   useEffect(() => {
-    // If NOT loading and we have a user, navigate away
+    // If NOT loading and we have a user, navigate to practice center
     if (!loading && currentUser) { 
-      navigate('/home', { replace: true });
+      navigate('/practice', { replace: true });
     }
     // Note: Do NOT add 'loading' to the dependency array if it causes a loop, 
     // but typically it is required. Keep it for now.

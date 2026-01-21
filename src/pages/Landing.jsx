@@ -10,9 +10,9 @@ export default function Landing() {
   const { currentUser, loading } = useAuth() // CRITICAL: Get currentUser and loading
 
   useEffect(() => {
-    // 1. If not loading AND we have a user, go to home
+    // 1. If not loading AND we have a user, go to practice center
     if (!loading && currentUser) {
-      navigate('/home', { replace: true })
+      navigate('/practice', { replace: true })
     } 
     // 2. If not loading AND no user, show the start button/login button
     // The component will just render the button if neither of the above is true.
