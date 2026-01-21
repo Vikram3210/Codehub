@@ -5,6 +5,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { useApp } from '../hooks/useApp'
 import ProfileMenu from '../components/ProfileMenu.jsx'
+import PrerequisiteTest from '../components/PrerequisiteTest'
 
 import { LEVEL_DATA } from '../data/levelData'
 
@@ -45,6 +46,28 @@ export default function Levels() {
   // Navigate to study page
   const startLevel = (level) => {
     navigate(`/study/${lang}/${level.id}`)
+  }
+
+  // Handle prerequisite test completion
+  const handlePrerequisiteComplete = (score, percentage) => {
+    dispatch({
+      type: 'completePrerequisiteTest',
+      lang: lang,
+      score: score,
+      percentage: percentage
+    })
+  }
+
+  // Show prerequisite test if not completed
+  if (!hasCompletedPrerequisite) {
+    return (
+      <PrerequisiteTest
+        lang={lang}
+        levelData={LEVEL_DATA}
+        onComplete={handlePrerequisiteComplete}
+        onExit={() => navigate('/languages')}
+      />
+    )
   }
 
   return (

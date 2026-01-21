@@ -21,10 +21,25 @@ export function AuthProvider({ children }) {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       clearTimeout(timeout) 
       
-      // Check if this is a different user logging in
-      if (user && previousUser && user.uid !== previousUser.uid) {
-        // Clear previous user's progress when a new user logs in
-        clearUserProgress()
+      // Check if this is a different user logging in OR if user logged out and new user logged in
+      const isNewUser = user && previousUser && user.uid !== previousUser.uid
+      const isUserLoggingIn = user && !previousUser
+      const isUserLoggingOut = !user && previousUser
+      
+      if (isNewUser) {
+        console.log('New user detected, clearing previous progress')
+        if (previousUser?.uid) {
+          clearUserProgress(previousUser.uid)
+        }
+      }
+      
+      if (isUserLoggingIn) {
+        // Remove old generic storage key for backwards compatibility
+        try {
+          localStorage.removeItem('codehub_app_state')
+        } catch (e) {
+          console.error('Error clearing old storage:', e)
+        }
       }
       
       setCurrentUser(user)
