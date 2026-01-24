@@ -1,0 +1,39 @@
+[
+  {
+    "key": "javascript",
+    "name": "JavaScript",
+    "description": "The programming language of the web. Learn JavaScript to build interactive websites and web applications.",
+    "icon": "/images/js.png",
+    "difficulty": "beginner",
+    "isActive": true,
+    "order": 1
+  },
+  {
+    "key": "python",
+    "name": "Python",
+    "description": "A versatile, high-level programming language known for its simplicity and readability. Perfect for beginners and used in data science, web development, and automation.",
+    "icon": "/images/python.png",
+    "difficulty": "beginner",
+    "isActive": true,
+    "order": 2
+  },
+  {
+    "key": "java",
+    "name": "Java",
+    "description": "A powerful, object-oriented programming language used for building enterprise applications, Android apps, and large-scale systems.",
+    "icon": "/images/java.png",
+    "difficulty": "intermediate",
+    "isActive": true,
+    "order": 3
+  },
+  {
+    "key": "cpp",
+    "name": "C++",
+    "description": "A powerful, high-performance programming language used for system programming, game development, and performance-critical applications.",
+    "icon": "/images/C++.png",
+    "difficulty": "advanced",
+    "isActive": true,
+    "order": 4
+  }
+]
+
