@@ -1,0 +1,20 @@
+{
+  "name": "aptitude-game-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "mongoose": "^8.18.1",
+    "socket.io": "^4.8.1"
+  },
+  "description": "Backend server for Aptitude Arena - MERN Stack",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

@@ -1,0 +1,590 @@
+[
+  {
+    "levelId": "java_00_intro",
+    "question": "Java runs on which virtual machine?",
+    "options": [
+      "CLR",
+      "JVM",
+      "V8",
+      "CPython"
+    ],
+    "correctAnswer": "JVM",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_00_intro",
+    "question": "Java is primarily…",
+    "options": [
+      "Dynamically typed",
+      "Statically typed",
+      "Untyped",
+      "Type inferred only"
+    ],
+    "correctAnswer": "Statically typed",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_00_intro",
+    "question": "Which build tool is common in Java?",
+    "options": [
+      "npm",
+      "pip",
+      "Maven",
+      "cargo"
+    ],
+    "correctAnswer": "Maven",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_00_intro",
+    "question": "Who is credited as the father of Java?",
+    "options": [
+      "James Gosling",
+      "Dennis Ritchie",
+      "Ken Thompson",
+      "Anders Hejlsberg"
+    ],
+    "correctAnswer": "James Gosling",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_01_basics",
+    "question": "What is the entry point of a Java program?",
+    "options": [
+      "start()",
+      "main()",
+      "init()",
+      "begin()"
+    ],
+    "correctAnswer": "main()",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_01_basics",
+    "question": "Which keyword is used to print to console in Java?",
+    "options": [
+      "print()",
+      "System.out.println()",
+      "console.log()",
+      "printf()"
+    ],
+    "correctAnswer": "System.out.println()",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_01_basics",
+    "question": "What is the correct way to declare an integer variable?",
+    "options": [
+      "int x = 5;",
+      "integer x = 5;",
+      "var x = 5;",
+      "int x = \"5\";"
+    ],
+    "correctAnswer": "int x = 5;",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_01_basics",
+    "question": "Which naming convention is used for Java classes?",
+    "options": [
+      "camelCase",
+      "snake_case",
+      "PascalCase",
+      "kebab-case"
+    ],
+    "correctAnswer": "PascalCase",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_01b_operators",
+    "question": "What does `10 / 3` return in Java?",
+    "options": [
+      "3.33",
+      "3",
+      "4",
+      "Error"
+    ],
+    "correctAnswer": "3",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_01b_operators",
+    "question": "What is the difference between `++x` and `x++`?",
+    "options": [
+      "No difference",
+      "++x increments before use, x++ after",
+      "x++ increments before, ++x after",
+      "Both are same"
+    ],
+    "correctAnswer": "++x increments before use, x++ after",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_01b_operators",
+    "question": "What does `!true` return?",
+    "options": [
+      "true",
+      "false",
+      "1",
+      "0"
+    ],
+    "correctAnswer": "false",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_01b_operators",
+    "question": "What is the ternary operator syntax?",
+    "options": [
+      "condition ? value1 : value2",
+      "if condition then value1 else value2",
+      "condition : value1 ? value2",
+      "value1 ? value2 : condition"
+    ],
+    "correctAnswer": "condition ? value1 : value2",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_02_oop",
+    "question": "What keyword is used to create a new object?",
+    "options": [
+      "new",
+      "create",
+      "make",
+      "instance"
+    ],
+    "correctAnswer": "new",
+    "explanation": "{\"new\":\"The `new` keyword allocates memory and invokes the constructor, creating a fresh object instance.\",\"create\":\"`create` is not a Java keyword; object construction must use `new` or factory methods.\",\"make\":\"`make` does not exist in Java for instantiation; it is an informal verb, not syntax.\",\"instance\":\"`instance` refers to an object conceptually, but it is not a keyword that creates one.\"}",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_02_oop",
+    "question": "Which access modifier makes a field accessible only within the same class?",
+    "options": [
+      "public",
+      "private",
+      "protected",
+      "default"
+    ],
+    "correctAnswer": "private",
+    "explanation": "{\"public\":\"`public` exposes the member everywhere, which is the opposite of restricting it to the class.\",\"private\":\"`private` hides the member so it can only be accessed inside the declaring class.\",\"protected\":\"`protected` allows access from subclasses and same-package classes, not just the class itself.\",\"default\":\"The default (package-private) modifier lets any class in the same package access it.\"}",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_02_oop",
+    "question": "What does the `this` keyword refer to?",
+    "options": [
+      "The class",
+      "The current object",
+      "The parent class",
+      "The method"
+    ],
+    "correctAnswer": "The current object",
+    "explanation": "{\"The class\":\"`this` is an instance reference, not a pointer to the class definition.\",\"The current object\":\"`this` refers to the current object so you can access its fields and methods.\",\"The parent class\":\"To reference the superclass you use `super`, while `this` stays on the current instance.\",\"The method\":\"`this` is not a method reference; it is the object on which the current method is executing.\"}",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_02_oop",
+    "question": "What is the purpose of a constructor?",
+    "options": [
+      "To destroy objects",
+      "To initialize objects",
+      "To call methods",
+      "To create classes"
+    ],
+    "correctAnswer": "To initialize objects",
+    "explanation": "{\"To destroy objects\":\"Java relies on the garbage collector to destroy objects; constructors never destroy.\",\"To initialize objects\":\"Constructors set up the initial state of new objects right after memory allocation.\",\"To call methods\":\"Constructors can call methods, but their primary job is not generic method dispatch.\",\"To create classes\":\"Classes are defined with the `class` keyword; constructors only run when instances are made.\"}",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_02_oop",
+    "question": "Which OOP principle hides internal data and exposes operations?",
+    "options": [
+      "Encapsulation",
+      "Inheritance",
+      "Abstraction",
+      "Polymorphism"
+    ],
+    "correctAnswer": "Encapsulation",
+    "explanation": "{\"Encapsulation\":\"Encapsulation keeps data private and exposes controlled accessors or methods.\",\"Inheritance\":\"Inheritance allows classes to reuse behaviour, not specifically hide data.\",\"Abstraction\":\"Abstraction focuses on exposing only essentials, but encapsulation is about sealing data.\",\"Polymorphism\":\"Polymorphism lets different types share an interface; it does not hide state.\"}",
+    "xpReward": 10,
+    "order": 4
+  },
+  {
+    "levelId": "java_02_oop",
+    "question": "What does calling `super()` inside a subclass constructor achieve?",
+    "options": [
+      "Invokes another constructor in the same class",
+      "Invokes the superclass constructor",
+      "Creates a new object",
+      "Calls the destructor"
+    ],
+    "correctAnswer": "Invokes the superclass constructor",
+    "explanation": "{\"Invokes another constructor in the same class\":\"Use `this(...)` to chain constructors inside the same class.\",\"Invokes the superclass constructor\":\"`super()` explicitly runs the parent constructor to set inherited state.\",\"Creates a new object\":\"`super()` does not instantiate; it configures the current object via the parent constructor.\",\"Calls the destructor\":\"Java has no destructor keyword; cleanup is managed by the garbage collector.\"}",
+    "xpReward": 10,
+    "order": 5
+  },
+  {
+    "levelId": "java_03_inheritance",
+    "question": "What keyword is used for inheritance in Java?",
+    "options": [
+      "inherits",
+      "extends",
+      "implements",
+      "super"
+    ],
+    "correctAnswer": "extends",
+    "explanation": "{\"inherits\":\"`inherits` describes the concept but is not valid Java syntax.\",\"extends\":\"`extends` declares that a class inherits from another class.\",\"implements\":\"`implements` is used for interfaces, not class inheritance.\",\"super\":\"`super` accesses superclass members; it does not declare inheritance.\"}",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_03_inheritance",
+    "question": "What does the `super()` keyword do?",
+    "options": [
+      "Calls parent constructor",
+      "Calls child constructor",
+      "Creates object",
+      "Destroys object"
+    ],
+    "correctAnswer": "Calls parent constructor",
+    "explanation": "{\"Calls parent constructor\":\"`super()` executes the superclass constructor before the subclass initializes its own fields.\",\"Calls child constructor\":\"Child constructors run automatically; `super()` specifically targets the parent.\",\"Creates object\":\"The object already exists when the constructor runs; `super()` does not allocate memory.\",\"Destroys object\":\"Java has no explicit destructor keyword; memory cleanup is automatic.\"}",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_03_inheritance",
+    "question": "What annotation indicates method overriding?",
+    "options": [
+      "@Override",
+      "@Overload",
+      "@Extend",
+      "@Super"
+    ],
+    "correctAnswer": "@Override",
+    "explanation": "{\"@Override\":\"`@Override` tells the compiler you intend to replace a superclass method.\",\"@Overload\":\"Method overloading is a different concept and has no required annotation.\",\"@Extend\":\"`@Extend` is not a standard Java annotation.\",\"@Super\":\"`@Super` does not exist in Java; use `@Override` to mark overrides.\"}",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_03_inheritance",
+    "question": "Which access modifier allows access to subclasses?",
+    "options": [
+      "public",
+      "private",
+      "protected",
+      "default"
+    ],
+    "correctAnswer": "protected",
+    "explanation": "{\"public\":\"Public members are visible everywhere, not just to subclasses.\",\"private\":\"`private` hides the member even from subclasses.\",\"protected\":\"`protected` members are visible to subclasses (and package mates).\",\"default\":\"Package-private visibility excludes subclasses in different packages.\"}",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_03_inheritance",
+    "question": "Interfaces provide...",
+    "options": [
+      "Implementation only",
+      "Multiple inheritance of type",
+      "Private constructors",
+      "State management"
+    ],
+    "correctAnswer": "Multiple inheritance of type",
+    "explanation": "{\"Implementation only\":\"Interfaces historically lacked implementation; default methods are optional, but the focus is type.\",\"Multiple inheritance of type\":\"A class can implement many interfaces, gaining multiple type identities.\",\"Private constructors\":\"Interfaces cannot declare constructors.\",\"State management\":\"Interfaces cannot hold instance state; they may have constants but not mutable fields.\"}",
+    "xpReward": 10,
+    "order": 4
+  },
+  {
+    "levelId": "java_03_inheritance",
+    "question": "Dynamic method dispatch happens...",
+    "options": [
+      "At compile time",
+      "At runtime",
+      "During linking",
+      "Never in Java"
+    ],
+    "correctAnswer": "At runtime",
+    "explanation": "{\"At compile time\":\"Compile time binding is for static methods; virtual calls resolve later.\",\"At runtime\":\"The JVM chooses the proper overridden implementation while the program runs.\",\"During linking\":\"Java linking loads classes but does not pick overridden methods per invocation.\",\"Never in Java\":\"Java relies heavily on runtime dispatch to support polymorphism.\"}",
+    "xpReward": 10,
+    "order": 5
+  },
+  {
+    "levelId": "java_04_collections",
+    "question": "Which interface is used for ordered collections?",
+    "options": [
+      "Set",
+      "Map",
+      "List",
+      "Queue"
+    ],
+    "correctAnswer": "List",
+    "explanation": "{\"Set\":\"Most `Set` implementations do not preserve insertion order.\",\"Map\":\"`Map` stores key-value pairs and is not a simple ordered sequence.\",\"List\":\"`List` guarantees positional access and preserves element order.\",\"Queue\":\"Queues focus on head/tail processing; ordering is tied to removal strategy, not positional indexing.\"}",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_04_collections",
+    "question": "What is the purpose of generics in Java?",
+    "options": [
+      "Performance",
+      "Type safety",
+      "Memory management",
+      "Code organization"
+    ],
+    "correctAnswer": "Type safety",
+    "explanation": "{\"Performance\":\"Generics do not change runtime performance; they are mostly erased at compile time.\",\"Type safety\":\"Generics let the compiler enforce the types stored in a collection.\",\"Memory management\":\"The garbage collector manages memory regardless of generics.\",\"Code organization\":\"Generics aid readability but their core benefit is preventing type errors.\"}",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_04_collections",
+    "question": "Which collection automatically removes duplicates?",
+    "options": [
+      "List",
+      "Set",
+      "Map",
+      "Array"
+    ],
+    "correctAnswer": "Set",
+    "explanation": "{\"List\":\"Lists can store duplicates because they are positional sequences.\",\"Set\":\"`Set` semantics guarantee that duplicate elements are not stored.\",\"Map\":\"Maps focus on unique keys but allow duplicate values; they are not purely collections.\",\"Array\":\"Arrays accept duplicates because they simply store values by index.\"}",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_04_collections",
+    "question": "What does `List<String>` mean?",
+    "options": [
+      "List of strings",
+      "String list",
+      "Generic list",
+      "All of the above"
+    ],
+    "correctAnswer": "All of the above",
+    "explanation": "{\"List of strings\":\"`List<String>` reads as “a list containing strings”.\",\"String list\":\"Informally you can call it a “string list”, describing the same type.\",\"Generic list\":\"It is a generic list parameterised with `String`.\",\"All of the above\":\"All phrasings describe the same generic type signature.\"}",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_04_collections",
+    "question": "Which implementation provides constant-time `get()`?",
+    "options": [
+      "LinkedList",
+      "ArrayList",
+      "HashSet",
+      "TreeSet"
+    ],
+    "correctAnswer": "ArrayList",
+    "explanation": "{\"LinkedList\":\"`LinkedList` must traverse nodes, so index access is O(n).\",\"ArrayList\":\"`ArrayList` stores elements contiguously, giving O(1) random access.\",\"HashSet\":\"`HashSet` is not index-based; it has no `get(index)` method.\",\"TreeSet\":\"`TreeSet` is a sorted set without positional access.\"}",
+    "xpReward": 10,
+    "order": 4
+  },
+  {
+    "levelId": "java_04_collections",
+    "question": "What does `Map.computeIfAbsent(key, k -> new ArrayList<>())` do?",
+    "options": [
+      "Always removes key",
+      "Only updates existing values",
+      "Initializes value when missing",
+      "Throws exception if key absent"
+    ],
+    "correctAnswer": "Initializes value when missing",
+    "explanation": "{\"Always removes key\":\"`computeIfAbsent` never removes keys; it adds or reuses values.\",\"Only updates existing values\":\"It only calls the lambda if the key is missing, not when it already exists.\",\"Initializes value when missing\":\"If the key is absent, it creates and stores a new `ArrayList`.\",\"Throws exception if key absent\":\"The whole point is to avoid exceptions by creating the missing entry.\"}",
+    "xpReward": 10,
+    "order": 5
+  },
+  {
+    "levelId": "java_05_concurrency",
+    "question": "Which creates a thread?",
+    "options": [
+      "new Thread()",
+      "Thread()",
+      "make Thread",
+      "spawn"
+    ],
+    "correctAnswer": "new Thread()",
+    "explanation": "{\"new Thread()\":\"Invoking the `Thread` constructor with `new` creates a fresh thread (which you then start).\",\"Thread()\":\"`Thread()` without `new` is not valid syntax; you must instantiate the class.\",\"make Thread\":\"`make` is not a Java keyword; thread creation uses the `Thread` class constructor.\",\"spawn\":\"`spawn` is not part of Java’s threading API.\"}",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_05_concurrency",
+    "question": "What do Executors manage?",
+    "options": [
+      "Memory",
+      "Thread pools",
+      "Streams",
+      "I/O only"
+    ],
+    "correctAnswer": "Thread pools",
+    "explanation": "{\"Memory\":\"Garbage collection manages memory, not the `Executor` framework.\",\"Thread pools\":\"Executors abstract over thread pools, queuing and running submitted tasks.\",\"Streams\":\"Streams process data pipelines; Executors schedule runnable tasks.\",\"I/O only\":\"Executors can run any computation, not just I/O tasks.\"}",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_05_concurrency",
+    "question": "Streams are…",
+    "options": [
+      "Parallel only",
+      "I/O only",
+      "Functional pipes over data",
+      "Threads"
+    ],
+    "correctAnswer": "Functional pipes over data",
+    "explanation": "{\"Parallel only\":\"Streams can be sequential or parallel; parallelism is optional.\",\"I/O only\":\"Java streams process in-memory data, distinct from I/O streams.\",\"Functional pipes over data\":\"The Stream API applies functional transformations over collections of data.\",\"Threads\":\"Streams use internal iteration but they are not themselves threads.\"}",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_05_concurrency",
+    "question": "Which reduces a stream to one value?",
+    "options": [
+      "map",
+      "filter",
+      "reduce",
+      "collectFirst"
+    ],
+    "correctAnswer": "reduce",
+    "explanation": "{\"map\":\"`map` transforms each element but keeps the same count.\",\"filter\":\"`filter` removes elements but may leave many values.\",\"reduce\":\"`reduce` combines elements to produce a single summary result.\",\"collectFirst\":\"`collectFirst` is not part of the Java Stream API.\"}",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_05_concurrency",
+    "question": "What does `ExecutorService.shutdown()` do?",
+    "options": [
+      "Immediately kills threads",
+      "Prevents new tasks while finishing current ones",
+      "Restarts the pool",
+      "Blocks forever"
+    ],
+    "correctAnswer": "Prevents new tasks while finishing current ones",
+    "explanation": "{\"Immediately kills threads\":\"`shutdown()` lets current tasks finish; `shutdownNow()` interrupts running tasks.\",\"Prevents new tasks while finishing current ones\":\"`shutdown()` stops new submissions and waits for active tasks to complete.\",\"Restarts the pool\":\"There is no restart behaviour; shutdown transitions the pool toward termination.\",\"Blocks forever\":\"The call returns immediately; you use `awaitTermination` to block.\"}",
+    "xpReward": 10,
+    "order": 4
+  },
+  {
+    "levelId": "java_05_concurrency",
+    "question": "Which class represents async pipelines?",
+    "options": [
+      "Thread",
+      "Runnable",
+      "CompletableFuture",
+      "FutureTask"
+    ],
+    "correctAnswer": "CompletableFuture",
+    "explanation": "{\"Thread\":\"`Thread` is a basic thread of execution, not a composition-friendly pipeline.\",\"Runnable\":\"`Runnable` models a task with no return value; it lacks completion chaining.\",\"CompletableFuture\":\"`CompletableFuture` models asynchronous computations with chaining and combination operations.\",\"FutureTask\":\"`FutureTask` wraps a single computation but lacks the fluent API of `CompletableFuture`.\"}",
+    "xpReward": 10,
+    "order": 5
+  },
+  {
+    "levelId": "java_06_lambdas_streams",
+    "question": "What is a lambda expression?",
+    "options": [
+      "A class",
+      "An anonymous function",
+      "A variable",
+      "A loop"
+    ],
+    "correctAnswer": "An anonymous function",
+    "explanation": "{\"A class\":\"Classes are named type declarations; lambdas are short-lived function literals.\",\"An anonymous function\":\"Lambdas are anonymous functions that implement functional interfaces.\",\"A variable\":\"Variables hold values; a lambda can be assigned to a variable but is not itself one.\",\"A loop\":\"Loops are control structures, not functional expressions.\"}",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "java_06_lambdas_streams",
+    "question": "What does `filter()` do in streams?",
+    "options": [
+      "Transforms elements",
+      "Selects elements matching condition",
+      "Sorts elements",
+      "Counts elements"
+    ],
+    "correctAnswer": "Selects elements matching condition",
+    "explanation": "{\"Transforms elements\":\"Use `map` to transform elements.\",\"Selects elements matching condition\":\"`filter` keeps only elements for which the predicate returns true.\",\"Sorts elements\":\"Sorting is handled by `sorted()`.\",\"Counts elements\":\"Counting is done via `count()`.\"}",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "java_06_lambdas_streams",
+    "question": "What is `System.out::println`?",
+    "options": [
+      "A lambda",
+      "A method reference",
+      "A class",
+      "A variable"
+    ],
+    "correctAnswer": "A method reference",
+    "explanation": "{\"A lambda\":\"It behaves similarly to a lambda but uses method reference syntax.\",\"A method reference\":\"The `::` operator creates a method reference to reuse an existing method.\",\"A class\":\"`System.out` is a PrintStream instance, not a class definition.\",\"A variable\":\"This expression is not a standalone variable; it references a method.\"}",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "java_06_lambdas_streams",
+    "question": "What is Optional used for?",
+    "options": [
+      "Handling null values safely",
+      "Creating arrays",
+      "Defining classes",
+      "Looping"
+    ],
+    "correctAnswer": "Handling null values safely",
+    "explanation": "{\"Handling null values safely\":\"`Optional` wraps a possibly absent value to avoid direct null checks.\",\"Creating arrays\":\"Arrays are created with the `new` keyword or literals, not `Optional`.\",\"Defining classes\":\"`class` keyword defines classes; Optional just wraps values.\",\"Looping\":\"Iterating is unrelated to Optional; use loops or stream operations.\"}",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "java_06_lambdas_streams",
+    "question": "Which functional interface consumes a value and returns nothing?",
+    "options": [
+      "Supplier",
+      "Predicate",
+      "Consumer",
+      "Function"
+    ],
+    "correctAnswer": "Consumer",
+    "explanation": "{\"Supplier\":\"A Supplier provides values but accepts none.\",\"Predicate\":\"Predicates take a value and return a boolean.\",\"Consumer\":\"Consumers accept a value and perform an action without returning a result.\",\"Function\":\"Functions transform inputs into outputs.\"}",
+    "xpReward": 10,
+    "order": 4
+  },
+  {
+    "levelId": "java_06_lambdas_streams",
+    "question": "Parallel streams should be used when…",
+    "options": [
+      "Operations are CPU bound and thread-safe",
+      "Operations depend on order",
+      "Collections are tiny",
+      "We need deterministic ordering"
+    ],
+    "correctAnswer": "Operations are CPU bound and thread-safe",
+    "explanation": "{\"Operations are CPU bound and thread-safe\":\"Parallel streams shine when work can be divided safely across cores.\",\"Operations depend on order\":\"Order-sensitive tasks can behave unexpectedly with parallel execution.\",\"Collections are tiny\":\"Small collections introduce more overhead than benefit when parallelised.\",\"We need deterministic ordering\":\"Parallel streams may reorder results unless you take extra steps.\"}",
+    "xpReward": 10,
+    "order": 5
+  }
+]

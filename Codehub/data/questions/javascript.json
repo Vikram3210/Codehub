@@ -1,0 +1,450 @@
+[
+  {
+    "levelId": "js_00_intro",
+    "question": "Who created JavaScript?",
+    "options": [
+      "Guido van Rossum",
+      "Brendan Eich",
+      "James Gosling",
+      "Bjarne Stroustrup"
+    ],
+    "correctAnswer": "Brendan Eich",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_00_intro",
+    "question": "JavaScript is primarily considered a…",
+    "options": [
+      "Low-level language",
+      "High-level language",
+      "Assembly language",
+      "Machine language"
+    ],
+    "correctAnswer": "High-level language",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_00_intro",
+    "question": "Which runtime lets JavaScript run on servers?",
+    "options": [
+      "JVM",
+      "CLR",
+      "Node.js",
+      "CPython"
+    ],
+    "correctAnswer": "Node.js",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_00_intro",
+    "question": "Which command prints text in JavaScript?",
+    "options": [
+      "print()",
+      "console.log()",
+      "System.out.println()",
+      "echo"
+    ],
+    "correctAnswer": "console.log()",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "js_01_variables",
+    "question": "Which keyword should be used for a value that will NOT be reassigned?",
+    "options": [
+      "let",
+      "var",
+      "const",
+      "value"
+    ],
+    "correctAnswer": "const",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_01_variables",
+    "question": "What is the type of the value `true`?",
+    "options": [
+      "string",
+      "number",
+      "boolean",
+      "null"
+    ],
+    "correctAnswer": "boolean",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_01_variables",
+    "question": "Which of the following is NOT a valid JavaScript variable name?",
+    "options": [
+      "myVariable",
+      "user_name",
+      "2ndPlace",
+      "$price"
+    ],
+    "correctAnswer": "2ndPlace",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_01_variables",
+    "question": "What will be the output of: `console.log(typeof undefined)`?",
+    "options": [
+      "\"undefined\"",
+      "\"null\"",
+      "undefined",
+      "null"
+    ],
+    "correctAnswer": "\"undefined\"",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "js_01b_operators",
+    "question": "What does `5 % 3` return?",
+    "options": [
+      "1",
+      "2",
+      "1.67",
+      "0"
+    ],
+    "correctAnswer": "2",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_01b_operators",
+    "question": "What is the difference between `==` and `===`?",
+    "options": [
+      "No difference",
+      "=== checks type, == does not",
+      "== checks type, === does not",
+      "Both check type"
+    ],
+    "correctAnswer": "=== checks type, == does not",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_01b_operators",
+    "question": "What does `!true` return?",
+    "options": [
+      "true",
+      "false",
+      "undefined",
+      "null"
+    ],
+    "correctAnswer": "false",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_01b_operators",
+    "question": "What does `x += 5` mean?",
+    "options": [
+      "x = x + 5",
+      "x = 5",
+      "x = x * 5",
+      "x = x - 5"
+    ],
+    "correctAnswer": "x = x + 5",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "js_02_functions",
+    "question": "What keyword is used to declare a function?",
+    "options": [
+      "func",
+      "function",
+      "def",
+      "method"
+    ],
+    "correctAnswer": "function",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_02_functions",
+    "question": "What will this function return: `function test() { return 5; }`?",
+    "options": [
+      "undefined",
+      "5",
+      "null",
+      "function"
+    ],
+    "correctAnswer": "5",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_02_functions",
+    "question": "Which is the correct arrow function syntax?",
+    "options": [
+      "() => {}",
+      "=> () {}",
+      "function => {}",
+      "() -> {}"
+    ],
+    "correctAnswer": "() => {}",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_02_functions",
+    "question": "What is the scope of a variable declared with `let` inside a function?",
+    "options": [
+      "Global",
+      "Function",
+      "Block",
+      "Module"
+    ],
+    "correctAnswer": "Block",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "js_03_arrays",
+    "question": "What is the index of the first element in an array?",
+    "options": [
+      "1",
+      "0",
+      "-1",
+      "first"
+    ],
+    "correctAnswer": "0",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_03_arrays",
+    "question": "Which method adds an element to the end of an array?",
+    "options": [
+      "push()",
+      "pop()",
+      "shift()",
+      "unshift()"
+    ],
+    "correctAnswer": "push()",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_03_arrays",
+    "question": "What will this code output: `for (let i = 0; i < 3; i++) { console.log(i); }`?",
+    "options": [
+      "0, 1, 2",
+      "1, 2, 3",
+      "0, 1, 2, 3",
+      "1, 2"
+    ],
+    "correctAnswer": "0, 1, 2",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_03_arrays",
+    "question": "Which loop is best for iterating over array elements?",
+    "options": [
+      "for...in",
+      "for...of",
+      "while",
+      "do...while"
+    ],
+    "correctAnswer": "for...of",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "js_04_objects",
+    "question": "How do you access a property named \"age\" in an object?",
+    "options": [
+      "object.age",
+      "object[age]",
+      "object[\"age\"]",
+      "Both A and C"
+    ],
+    "correctAnswer": "Both A and C",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_04_objects",
+    "question": "What does the `this` keyword refer to in a class method?",
+    "options": [
+      "The global object",
+      "The class itself",
+      "The instance",
+      "undefined"
+    ],
+    "correctAnswer": "The instance",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_04_objects",
+    "question": "Which method creates a new instance of a class?",
+    "options": [
+      "new",
+      "create",
+      "instance",
+      "make"
+    ],
+    "correctAnswer": "new",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_04_objects",
+    "question": "What will `Object.keys({a: 1, b: 2})` return?",
+    "options": [
+      "[1, 2]",
+      "[\"a\", \"b\"]",
+      "[{a: 1}, {b: 2}]",
+      "undefined"
+    ],
+    "correctAnswer": "[\"a\", \"b\"]",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "js_05_async",
+    "question": "A Promise represents…",
+    "options": [
+      "A synchronous value",
+      "An async result",
+      "A thread",
+      "A generator"
+    ],
+    "correctAnswer": "An async result",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_05_async",
+    "question": "Which keyword waits for a Promise?",
+    "options": [
+      "await",
+      "defer",
+      "yield",
+      "next"
+    ],
+    "correctAnswer": "await",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_05_async",
+    "question": "Where do you place error handling for async/await?",
+    "options": [
+      "after await",
+      "try/catch",
+      "finally only",
+      "cannot handle"
+    ],
+    "correctAnswer": "try/catch",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_05_async",
+    "question": "JavaScript concurrency is managed by…",
+    "options": [
+      "Threads",
+      "Event loop",
+      "Processes",
+      "Locks"
+    ],
+    "correctAnswer": "Event loop",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  },
+  {
+    "levelId": "js_06_modules",
+    "question": "Which keyword exports a module?",
+    "options": [
+      "export",
+      "module.exports",
+      "exports",
+      "All of the above"
+    ],
+    "correctAnswer": "export",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 0
+  },
+  {
+    "levelId": "js_06_modules",
+    "question": "What does destructuring do?",
+    "options": [
+      "Creates arrays",
+      "Extracts values from objects/arrays",
+      "Deletes variables",
+      "Imports modules"
+    ],
+    "correctAnswer": "Extracts values from objects/arrays",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 1
+  },
+  {
+    "levelId": "js_06_modules",
+    "question": "What does the spread operator (...) do?",
+    "options": [
+      "Copies arrays/objects",
+      "Multiplies values",
+      "Divides arrays",
+      "Nothing"
+    ],
+    "correctAnswer": "Copies arrays/objects",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 2
+  },
+  {
+    "levelId": "js_06_modules",
+    "question": "Template literals use which characters?",
+    "options": [
+      "Single quotes",
+      "Double quotes",
+      "Backticks",
+      "Parentheses"
+    ],
+    "correctAnswer": "Backticks",
+    "explanation": "",
+    "xpReward": 10,
+    "order": 3
+  }
+]
