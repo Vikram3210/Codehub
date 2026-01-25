@@ -1,28 +1,28 @@
 :root {
-  --text-primary: #e7fbff;
-  --text-secondary: #cfefff;
-  --bg-dark: #02030a;
-  --bg-card: rgba(8, 12, 24, 0.72);
-  --bg-card-light: rgba(11, 18, 38, 0.72);
-  --border-cyan: rgba(0, 255, 255, 0.18);
-  --primary-cyan: #00ffb3;
-  --secondary-cyan: #00ffd9;
-  --shadow-cyan: rgba(0, 255, 200, 0.12);
-  --shadow-cyan-strong: rgba(0, 255, 200, 0.3);
+  --text-primary: #e7fef5;
+  --text-secondary: #cffce8;
+  --bg-dark: #020a06;
+  --bg-card: rgba(8, 24, 12, 0.72);
+  --bg-card-light: rgba(11, 38, 18, 0.72);
+  --border-green: rgba(16, 185, 129, 0.18);
+  --primary-green: #10b981;
+  --secondary-green: #34d399;
+  --shadow-green: rgba(16, 185, 129, 0.12);
+  --shadow-green-strong: rgba(16, 185, 129, 0.3);
 }
 
 @keyframes glow {
   0%, 100% {
-    text-shadow: 0 0 15px var(--primary-cyan);
+    text-shadow: 0 0 15px var(--primary-green);
   }
   50% {
-    text-shadow: 0 0 25px var(--primary-cyan);
+    text-shadow: 0 0 25px var(--primary-green);
   }
 }
 
 .dash {
   min-height: 100vh;
-  background: radial-gradient(ellipse at top, #0b1020, #05060a 60%, #02030a 100%);
+  background: radial-gradient(ellipse at top, #0b2010, #050a06 60%, #020a06 100%);
   color: var(--text-primary);
   font-family: 'Roboto Slab', 'Libertinus Serif Display', serif;
   position: relative;
@@ -36,7 +36,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: radial-gradient(circle at 20% 80%, rgba(0, 255, 200, 0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 122, 24, 0.08) 0%, transparent 50%), linear-gradient(45deg, transparent 30%, rgba(0, 255, 200, 0.02) 50%, transparent 70%);
+  background: radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(52, 211, 153, 0.08) 0%, transparent 50%), linear-gradient(45deg, transparent 30%, rgba(16, 185, 129, 0.02) 50%, transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
@@ -46,10 +46,10 @@
   align-items: center;
   gap: 20px;
   padding: 20px 30px;
-  border-bottom: 2px solid var(--border-cyan);
+  border-bottom: 2px solid var(--border-green);
   background: linear-gradient(135deg, var(--bg-card), var(--bg-card-light));
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 30px var(--shadow-cyan);
+  box-shadow: 0 4px 30px var(--shadow-green);
 }
 
 .brand {
@@ -57,13 +57,13 @@
   font-weight: 900;
   letter-spacing: 2px;
   font-size: 1.8rem;
-  text-shadow: 0 0 15px var(--primary-cyan);
+  text-shadow: 0 0 15px var(--primary-green);
   animation: glow 2s ease-in-out infinite alternate;
 }
 
 .brand span {
-  color: var(--primary-cyan);
-  text-shadow: 0 0 20px var(--primary-cyan);
+  color: var(--primary-green);
+  text-shadow: 0 0 20px var(--primary-green);
 }
 
 .spacer {
@@ -77,20 +77,20 @@
   background: linear-gradient(135deg, var(--bg-card), var(--bg-card-light));
   padding: 0.6rem 1.2rem;
   border-radius: 20px;
-  border: 1px solid var(--border-cyan);
-  box-shadow: 0 0 10px var(--shadow-cyan);
+  border: 1px solid var(--border-green);
+  box-shadow: 0 0 10px var(--shadow-green);
 }
 
 .logout {
   margin-left: 15px;
   padding: 12px 20px;
-  background: linear-gradient(135deg, var(--primary-cyan), var(--secondary-cyan));
+  background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
   border: none;
   color: var(--bg-dark);
   border-radius: 25px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 0 15px var(--shadow-cyan-strong);
+  box-shadow: 0 0 15px var(--shadow-green-strong);
   font-weight: 800;
   font-family: 'Roboto Slab', sans-serif;
   text-transform: uppercase;
@@ -99,7 +99,7 @@
 
 .logout:hover {
   transform: translateY(-3px);
-  box-shadow: 0 0 25px var(--shadow-cyan-strong);
+  box-shadow: 0 0 25px var(--shadow-green-strong);
 }
 
 .dash main {
@@ -125,8 +125,8 @@
   border-radius: 20px;
   cursor: pointer;
   background: linear-gradient(135deg, var(--bg-card), var(--bg-card-light));
-  border: 2px solid var(--border-cyan);
-  box-shadow: 0 0 25px var(--shadow-cyan);
+  border: 2px solid var(--border-green);
+  box-shadow: 0 0 25px var(--shadow-green);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -150,7 +150,7 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 200, 0.1), transparent);
+  background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
   transition: left 0.5s ease;
   pointer-events: none;
   z-index: 0;
@@ -162,8 +162,8 @@
 
 .tile:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 35px var(--shadow-cyan-strong);
-  border-color: var(--primary-cyan);
+  box-shadow: 0 0 35px var(--shadow-green-strong);
+  border-color: var(--primary-green);
   cursor: pointer;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .tile:focus {
-  outline: 2px solid var(--primary-cyan);
+  outline: 2px solid var(--primary-green);
   outline-offset: 2px;
 }
 
@@ -181,8 +181,8 @@
   font-weight: 900;
   font-size: 28px;
   margin-bottom: 15px;
-  color: var(--primary-cyan);
-  text-shadow: 0 0 10px var(--primary-cyan);
+  color: var(--primary-green);
+  text-shadow: 0 0 10px var(--primary-green);
   position: relative;
   z-index: 10;
   pointer-events: none;
@@ -211,7 +211,7 @@
   right: 20px;
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--primary-cyan), var(--secondary-cyan));
+  background: linear-gradient(135deg, var(--primary-green), var(--secondary-green));
   border-radius: 50%;
   opacity: 0.3;
   transition: all 0.3s ease;

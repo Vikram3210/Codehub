@@ -1,12 +1,15 @@
 // src/pages/PracticeOptions.jsx
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../state/useAuth'
 import { logout } from '../services/firebase'
+import WaveTransition from '../components/WaveTransition'
 
 export default function PracticeOptions() {
   const navigate = useNavigate()
   const { currentUser } = useAuth()
+  const [showWaveTransition, setShowWaveTransition] = useState(false)
 
   const userName =
     currentUser?.displayName ||
@@ -22,8 +25,22 @@ export default function PracticeOptions() {
     }
   }
 
+  const handleQuizPracticeClick = () => {
+    setShowWaveTransition(true)
+  }
+
+  const handleWaveComplete = () => {
+    navigate('/quiz/dashboard')
+    setShowWaveTransition(false)
+  }
+
   return (
-    <div className="container-fluid min-vh-100 p-4 gradient-bg">
+    <>
+      <WaveTransition 
+        isActive={showWaveTransition} 
+        onComplete={handleWaveComplete}
+      />
+      <div className="container-fluid min-vh-100 p-4 gradient-bg">
       <div className="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
         <div className="d-flex align-items-center gap-3 flex-wrap">
           <h2 className="text-light fw-bold mb-0" style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
@@ -77,7 +94,7 @@ export default function PracticeOptions() {
                 justifyContent: 'center',
                 alignItems: 'center'
               }}
-              onClick={() => navigate('/quiz/dashboard')}
+              onClick={handleQuizPracticeClick}
             >
               <div className="mb-4" style={{ fontSize: '4rem' }}>🧠</div>
               <h2 className="h3 fw-bold mb-3">Quiz Practice</h2>
@@ -113,6 +130,7 @@ export default function PracticeOptions() {
         </div>
       </div>
     </div>
+    </>
   )
 }
 
