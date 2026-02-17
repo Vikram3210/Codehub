@@ -122,7 +122,7 @@ function reducer(state, action) {
     
     case 'completePrerequisiteTest':
       const unlockedDifficulty = action.score > 15 ? 'advanced' : action.score > 13 ? 'intermediate' : 'easy'
-      return {
+      const newPrerequisiteState = {
         ...state,
         prerequisiteTests: {
           ...state.prerequisiteTests,
@@ -134,6 +134,14 @@ function reducer(state, action) {
           }
         }
       }
+      console.log('[AppContext] Prerequisite test completed:', {
+        lang: action.lang,
+        score: action.score,
+        percentage: action.percentage,
+        unlockedDifficulty,
+        newState: newPrerequisiteState.prerequisiteTests[action.lang]
+      })
+      return newPrerequisiteState
       
     default:
       return state

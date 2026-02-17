@@ -1,11 +1,117 @@
 /* TheoryQuizPage.css */
 
 .theory-content {
-  background: linear-gradient(155deg, rgba(18, 26, 55, 0.95) 0%, rgba(11, 18, 40, 0.98) 100%);
-  border-radius: 18px;
-  padding: 1.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 20px 36px rgba(5, 9, 22, 0.65);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* --- Lesson content typography & layout (light professional theme) ---
+ * Background: #F8FAFC
+ * Card / Surface: #FFFFFF
+ * Primary: #2563EB (blue)
+ * Secondary: #14B8A6 (teal)
+ * Accent: #F59E0B (amber)
+ */
+.lesson-shell {
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid #E2E8F0; /* Border / Divider */
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(16px);
+}
+
+.lesson-title-heading {
+  font-size: clamp(1.9rem, 3vw, 2.4rem);
+  color: #1E293B; /* Text primary */
+}
+
+.lesson-title-sub {
+  font-size: 0.95rem;
+  color: #64748B; /* Text secondary */
+}
+
+.lesson-tag {
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+
+.lesson-content {
+  color: #1E293B; /* Text primary */
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.lesson-paragraph {
+  margin-bottom: 1rem;
+}
+
+.lesson-section + .lesson-section {
+  margin-top: 1.25rem;
+}
+
+.lesson-heading {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.lesson-card {
+  display: flex;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  margin-bottom: 0.9rem;
+  align-items: flex-start;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15);
+}
+
+.lesson-card-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  margin-top: 0.15rem;
+}
+
+.lesson-card-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.lesson-card-definition {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(37, 99, 235, 0.15)); /* primary */
+  border: 1px solid rgba(37, 99, 235, 0.45);
+}
+
+.lesson-card-important {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.18)); /* accent */
+  border: 1px solid rgba(245, 158, 11, 0.45);
+}
+
+.lesson-card-warning {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.06), rgba(220, 38, 38, 0.14)); /* error */
+  border: 1px solid rgba(220, 38, 38, 0.4);
+}
+
+.lesson-card-tip {
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.08), rgba(20, 184, 166, 0.18)); /* secondary */
+  border: 1px solid rgba(20, 184, 166, 0.5);
+}
+
+.lesson-list ul,
+.lesson-list ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0.9rem;
+}
+
+.lesson-list-bullets li {
+  margin-bottom: 0.35rem;
+}
+
+.lesson-list-steps li {
+  margin-bottom: 0.4rem;
 }
 
 .theory-content pre {

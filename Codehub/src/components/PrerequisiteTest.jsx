@@ -1,64 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { quizApi } from '../utils/quiz/api';
 
-// Generate 20 prerequisite questions from all levels
-function generatePrerequisiteQuestions(lang, levelData) {
-  console.log('generatePrerequisiteQuestions called with:', { lang, levelDataKeys: levelData ? Object.keys(levelData) : 'null' });
-  const allQuestions = [];
-  
-  if (!levelData) {
-    console.error('levelData is null or undefined');
-    return [];
-  }
-  
-  if (!levelData[lang]) {
-    console.error(`Language "${lang}" not found in levelData. Available languages:`, Object.keys(levelData));
-    return [];
-  }
-  
-  const languageData = levelData[lang];
-  console.log(`Found language data for ${lang}. Number of levels:`, Object.keys(languageData).length);
-  
-  Object.values(languageData).forEach((level, index) => {
-    if (level.quiz && Array.isArray(level.quiz)) {
-      console.log(`Level "${level.title}" has ${level.quiz.length} quiz questions`);
-      level.quiz.forEach(q => {
-        // Ensure question has required fields
-        if (q.question && q.options && q.answer) {
-          allQuestions.push({
-            ...q,
-            sourceLevel: level.title
-          });
-        } else {
-          console.warn('Invalid question format:', q);
-        }
-      });
-    } else {
-      console.log(`Level "${level.title}" has no quiz or quiz is not an array`);
-    }
-  });
-  
-  console.log(`Total questions collected for ${lang}:`, allQuestions.length);
-  
-  // Shuffle and pick 20 questions (or all if less than 20)
-  const shuffled = allQuestions.sort(() => Math.random() - 0.5);
-  const count = Math.min(20, shuffled.length);
-  const selected = shuffled.slice(0, count);
-  console.log(`Selected ${selected.length} questions for prerequisite test`);
-  
-  return selected;
-}
-
-export default function PrerequisiteTest({ lang, levelData, onComplete, onExit }) {
-  const [questions] = useState(() => {
-    console.log('PrerequisiteTest - Initializing with:', { lang, levelData: levelData ? 'provided' : 'missing' });
-    const qs = generatePrerequisiteQuestions(lang, levelData);
-    console.log('PrerequisiteTest - Generated questions:', qs.length, 'for lang:', lang);
-    if (qs.length === 0) {
-      console.error('PrerequisiteTest - No questions generated! This will cause a blank page.');
-    }
-    return qs;
-  });
+export default function PrerequisiteTest({ lang, onComplete, onExit }) {
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
@@ -69,7 +16,43 @@ export default function PrerequisiteTest({ lang, levelData, onComplete, onExit }
   const [testStarted, setTestStarted] = useState(false);
   const containerRef = useRef(null);
 
+  // Load prerequisite questions from API (MongoDB)
+  useEffect(() => {
+    let isMounted = true;
 
+    const fetchQuestions = async () => {
+      try {
+        setLoading(true);
+        setLoadError(null);
+
+        const data = await quizApi.get(`/prerequisites/random/${lang}?count=20`);
+
+        if (!isMounted) return;
+
+        if (!Array.isArray(data) || data.length === 0) {
+          setQuestions([]);
+          setLoadError('No prerequisite questions available for this language yet.');
+        } else {
+          setQuestions(data);
+        }
+      } catch (error) {
+        console.error('PrerequisiteTest - error fetching questions:', error);
+        if (isMounted) {
+          setLoadError('Failed to load prerequisite questions. Please try again later.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchQuestions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [lang]);
 
   // Request fullscreen on container element
   const requestFullscreen = useCallback(async () => {
@@ -235,12 +218,24 @@ export default function PrerequisiteTest({ lang, levelData, onComplete, onExit }
     </ul>
   );
 
-  // Check if we have questions - after all hooks are called
-  if (!questions || questions.length === 0) {
+  // Loading / error states and empty data handling
+  if (loading) {
+    return (
+      <div className="gradient-bg d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', padding: '2rem' }}>
+        <div className="card-glow p-5 text-center" style={{ maxWidth: '600px', backgroundColor: '#151a2d', borderRadius: '15px' }}>
+          <h2 className="neon-text mb-4">Loading Prerequisite Test...</h2>
+          <div className="spinner-border text-info" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError || !questions || questions.length === 0) {
     console.error('PrerequisiteTest - No questions available for lang:', lang, {
       questions,
-      levelDataProvided: !!levelData,
-      levelDataKeys: levelData ? Object.keys(levelData) : 'N/A'
+      error: loadError,
     });
     return (
       <div className="gradient-bg d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', padding: '2rem' }}>
@@ -248,10 +243,14 @@ export default function PrerequisiteTest({ lang, levelData, onComplete, onExit }
           <h2 className="neon-text mb-4">⚠️ No Questions Available</h2>
           <p className="text-light mb-3">There are no questions available for <strong>{lang}</strong> yet.</p>
           <p className="text-muted small mb-4">
-            This could mean:
-            <br />• No quiz questions have been added to the levels yet
-            <br />• The language data is not loading correctly
-            <br />• Check the browser console for more details
+            {loadError || (
+              <>
+                This could mean:
+                <br />• No prerequisite questions have been added yet
+                <br />• The language data is not loading correctly
+                <br />• Check the browser console for more details
+              </>
+            )}
           </p>
           <button onClick={onExit} className="btn btn-neon">
             ← Go Back to Languages
@@ -335,10 +334,11 @@ export default function PrerequisiteTest({ lang, levelData, onComplete, onExit }
         return;
       }
       
-      // Calculate score
+      // Calculate score (compare against correctAnswer from API)
       let correctAnswers = 0;
       questions.forEach((question, index) => {
-        if (selectedAnswers[index] === question.answer) {
+        const userAnswer = selectedAnswers[index];
+        if (userAnswer !== undefined && userAnswer === question.correctAnswer) {
           correctAnswers++;
         }
       });

@@ -76,7 +76,7 @@ export default function PracticeOptions() {
         </motion.div>
 
         <div className="row g-4 g-lg-5 justify-content-center">
-          <div className="col-12 col-md-6 col-lg-5">
+          <div className="col-12 col-md-6 col-lg-4">
             <motion.div
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(0, 234, 255, 0.6)' }}
               whileTap={{ scale: 0.98 }}
@@ -102,7 +102,7 @@ export default function PracticeOptions() {
             </motion.div>
           </div>
 
-          <div className="col-12 col-md-6 col-lg-5">
+          <div className="col-12 col-md-6 col-lg-4">
             <motion.div
               whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(0, 234, 255, 0.6)' }}
               whileTap={{ scale: 0.98 }}
@@ -125,6 +125,34 @@ export default function PracticeOptions() {
               <div className="mb-4" style={{ fontSize: '4rem' }}>💻</div>
               <h2 className="h3 fw-bold mb-3">Language Practice</h2>
               <p className="mb-0">Learn programming languages through interactive lessons, quizzes, and hands-on coding practice.</p>
+            </motion.div>
+          </div>
+
+          <div className="col-12 col-md-6 col-lg-4">
+            <motion.div
+              whileHover={{ scale: 1.05, boxShadow: '0 0 30px rgba(56, 189, 248, 0.6)' }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="card card-glow p-5 text-white text-center"
+              style={{
+                height: '300px',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0f172a 100%)',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              onClick={() => navigate('/coding-practice')}
+            >
+              <div className="mb-4" style={{ fontSize: '4rem' }}>🧑‍💻</div>
+              <h2 className="h3 fw-bold mb-3">Coding Practice</h2>
+              <p className="mb-0">
+                Open a VS Code–style editor in your browser, experiment with code, and get ready for online judges.
+              </p>
             </motion.div>
           </div>
         </div>

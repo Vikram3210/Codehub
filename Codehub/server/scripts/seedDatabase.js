@@ -61,9 +61,10 @@ async function seedDatabase() {
     console.log('📦 Loading questions from JSON files...');
     const questionsData = {};
     const questionsDir = join(__dirname, '../../data/questions');
-    
-    const languages = ['javascript', 'python', 'java', 'cpp'];
-    for (const lang of languages) {
+
+    // Languages for which we have question JSON files
+    const questionLanguages = ['javascript', 'python', 'java', 'cpp'];
+    for (const lang of questionLanguages) {
       try {
         const filePath = join(questionsDir, `${lang}.json`);
         const fileContent = readFileSync(filePath, 'utf-8');
@@ -102,8 +103,8 @@ async function seedDatabase() {
 
     // Seed Languages
     console.log('📝 Seeding languages...');
-    const languages = await Language.insertMany(languageData);
-    console.log(`✅ Inserted ${languages.length} languages`);
+    const insertedLanguages = await Language.insertMany(languageData);
+    console.log(`✅ Inserted ${insertedLanguages.length} languages`);
 
     // Seed Lessons and Questions
     let totalLessons = 0;
@@ -156,7 +157,7 @@ async function seedDatabase() {
     }
 
     console.log('\n📊 Seeding Summary:');
-    console.log(`   Languages: ${languages.length}`);
+    console.log(`   Languages: ${insertedLanguages.length}`);
     console.log(`   Lessons: ${totalLessons}`);
     console.log(`   Questions: ${totalQuestions}`);
     console.log('\n🎉 Database seeding completed successfully!');

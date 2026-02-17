@@ -1,124 +1,133 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import Question from '../models/Question.js';
-import Lesson from '../models/Lesson.js';
 
 const router = express.Router();
 
-// Get all questions
+// Get all quiz questions (optionally filtered by lessonId)
 router.get('/', async (req, res) => {
   try {
-    const { languageKey, levelId, lessonId } = req.query;
-    const query = { isActive: true };
-    
-    if (languageKey) {
-      query.languageKey = languageKey.toLowerCase();
-    }
-    
-    if (levelId) {
-      query.levelId = levelId;
-    }
-    
+    const { lessonId } = req.query;
+    // NOTE: Do NOT filter by isActive here because existing question
+    // documents in MongoDB might not have that field yet.
+    const query = {};
+
     if (lessonId) {
-      query.lessonId = lessonId;
-    }
-    
-    const questions = await Question.find(query)
-      .sort({ order: 1 })
-      .populate('lessonId', 'title levelId');
-    
-    res.json(questions);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get questions by language and levelId
-router.get('/:languageKey/:levelId', async (req, res) => {
-  try {
-    const questions = await Question.find({
-      languageKey: req.params.languageKey.toLowerCase(),
-      levelId: req.params.levelId,
-      isActive: true
-    })
-    .sort({ order: 1 })
-    .populate('lessonId', 'title levelId');
-    
-    res.json(questions);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get question by ID
-router.get('/:id', async (req, res) => {
-  try {
-    const question = await Question.findById(req.params.id)
-      .populate('lessonId', 'title levelId');
-    
-    if (!question) {
-      return res.status(404).json({ error: 'Question not found' });
-    }
-    
-    res.json(question);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Create question
-router.post('/', async (req, res) => {
-  try {
-    // If lessonId is not provided, try to find lesson by languageKey and levelId
-    if (!req.body.lessonId && req.body.languageKey && req.body.levelId) {
-      const lesson = await Lesson.findOne({
-        languageKey: req.body.languageKey.toLowerCase(),
-        levelId: req.body.levelId
-      });
-      
-      if (lesson) {
-        req.body.lessonId = lesson._id;
+      // Match both string and ObjectId formats
+      try {
+        const objectId = new mongoose.Types.ObjectId(lessonId);
+        query.$or = [
+          { lessonId: lessonId }, // String match
+          { lessonId: objectId }, // ObjectId match
+        ];
+      } catch (e) {
+        // If lessonId is not a valid ObjectId format, just use string match
+        query.lessonId = lessonId;
       }
     }
-    
-    const question = new Question(req.body);
-    await question.save();
-    
-    await question.populate('lessonId', 'title levelId');
-    res.status(201).json(question);
+
+    const questions = await Question.find(query)
+      .sort({ order: 1 })
+      .lean();
+
+    res.json(questions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get quiz questions for a specific lesson
+// GET /api/questions/:lessonId
+router.get('/:lessonId', async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+
+    console.log('[Questions API] Fetching questions for lessonId:', lessonId);
+
+    // Match both string and ObjectId formats
+    let query;
+    try {
+      const objectId = new mongoose.Types.ObjectId(lessonId);
+      query = {
+        $or: [
+          { lessonId: lessonId }, // String match
+          { lessonId: objectId }, // ObjectId match
+        ],
+      };
+    } catch (e) {
+      // If lessonId is not a valid ObjectId format, just use string match
+      query = { lessonId: lessonId };
+    }
+
+    // Do NOT filter by isActive - allow documents without this field
+    const questions = await Question.find(query)
+      .sort({ order: 1 })
+      .lean();
+
+    console.log('[Questions API] Found', questions.length, 'questions for lessonId:', lessonId);
+
+    // Return empty array instead of 404 - some lessons might not have questions yet
+    res.json(questions || []);
+  } catch (error) {
+    console.error('[Questions API] Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create quiz question
+router.post('/', async (req, res) => {
+  try {
+    const { lessonId, question, options, correctAnswer, explanation, points, order } = req.body;
+
+    if (!lessonId) {
+      return res.status(400).json({ error: 'lessonId is required' });
+    }
+
+    const payload = {
+      lessonId,
+      question,
+      options,
+      correctAnswer,
+      explanation,
+      points,
+      order,
+    };
+
+    const created = await Question.create(payload);
+    res.status(201).json(created);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Update question
-router.put('/:id', async (req, res) => {
+// Update quiz question by question ID
+router.put('/by-id/:id', async (req, res) => {
   try {
-    const question = await Question.findByIdAndUpdate(
+    const updated = await Question.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
-    )
-    .populate('lessonId', 'title levelId');
-    
-    if (!question) {
+      { new: true, runValidators: true },
+    ).lean();
+
+    if (!updated) {
       return res.status(404).json({ error: 'Question not found' });
     }
-    
-    res.json(question);
+
+    res.json(updated);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
 
-// Delete question
-router.delete('/:id', async (req, res) => {
+// Delete quiz question by ID
+router.delete('/by-id/:id', async (req, res) => {
   try {
-    const question = await Question.findByIdAndDelete(req.params.id);
-    
-    if (!question) {
+    const deleted = await Question.findByIdAndDelete(req.params.id).lean();
+
+    if (!deleted) {
       return res.status(404).json({ error: 'Question not found' });
     }
-    
+
     res.json({ message: 'Question deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

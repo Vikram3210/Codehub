@@ -1,33 +1,12 @@
 // src/pages/Levels.jsx (COMPLETE CODE)
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { useApp } from '../hooks/useApp'
 import ProfileMenu from '../components/ProfileMenu.jsx'
 import PrerequisiteTest from '../components/PrerequisiteTest'
-
-import { LEVEL_DATA } from '../data/levelData'
-
-// --- LEVEL DATA HELPER ---
-const getLevelsForLanguage = (lang) => {
-  if (LEVEL_DATA[lang]) {
-    return Object.entries(LEVEL_DATA[lang])
-      .map(([id, data]) => ({
-        id,
-        title: data.title,
-        xp: data.xp,
-        order: typeof data.order === 'number' ? data.order : 999,
-      }))
-      .sort((a, b) => a.order - b.order)
-  }
-  // Fallback if language not found
-  return [
-    { id: '1', title: 'Level 1: Basics', xp: 50 },
-    { id: '2', title: 'Level 2: Control Flow', xp: 75 },
-  ]
-}
-// -----------------------------
+import { quizApi } from '../utils/quiz/api'
 
 
 export default function Levels() {
@@ -35,29 +14,90 @@ export default function Levels() {
   const navigate = useNavigate()
   const { state, dispatch } = useApp()
 
+  const [levels, setLevels] = useState([])
+  const [loadingLevels, setLoadingLevels] = useState(true)
+  const [levelsError, setLevelsError] = useState(null)
+
   // Debug logging
   console.log('Levels component - lang:', lang, 'state:', state)
 
   // Check if prerequisite test is completed
   const prerequisiteResult = state.prerequisiteTests?.[lang]
-  const hasCompletedPrerequisite = prerequisiteResult?.completed || false
+  const hasCompletedPrerequisite = prerequisiteResult?.completed === true
   const unlockedDifficulty = prerequisiteResult?.unlockedDifficulty || 'easy'
 
-  console.log('Prerequisite check - hasCompleted:', hasCompletedPrerequisite, 'result:', prerequisiteResult)
+  // Load levels from backend (MongoDB) for this language
+  // ALWAYS fetch lessons regardless of prerequisite status
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchLevels = async () => {
+      try {
+        setLoadingLevels(true)
+        setLevelsError(null)
+
+        const apiUrl = `/lessons?languageKey=${lang}`
+        const fullUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}${apiUrl}`
+        console.log('[Levels] Fetching lessons for languageKey:', lang)
+        console.log('[Levels] Full API URL:', fullUrl)
+        
+        const data = await quizApi.get(apiUrl)
+        console.log('[Levels] Raw API response:', data)
+        console.log('[Levels] Response type:', typeof data, 'Is array?', Array.isArray(data))
+        console.log('[Levels] Received lessons data:', data?.length || 0, 'lessons')
+
+        if (!isMounted) return
+
+        if (!Array.isArray(data)) {
+          console.warn('[Levels] API did not return an array:', data)
+          setLevels([])
+          setLevelsError('Invalid response format from server')
+          return
+        }
+
+        const normalized = data.map(lesson => {
+          console.log('[Levels] Processing lesson:', lesson._id, lesson.title, 'levelNumber:', lesson.levelNumber)
+          return {
+            id: lesson._id,
+            title: lesson.title || lesson.lessonTitle || 'Untitled Level',
+            xp: typeof lesson.xp === 'number' ? lesson.xp : 0,
+            difficulty: lesson.difficulty || 'intermediate',
+            order: typeof lesson.order === 'number' ? lesson.order : lesson.levelNumber || 999,
+          }
+        })
+
+        console.log('[Levels] Normalized lessons:', normalized.length, normalized)
+        if (isMounted) {
+          setLevels(normalized)
+        }
+      } catch (error) {
+        console.error('[Levels] Error loading levels from API:', error)
+        console.error('[Levels] Error details:', error.message)
+        if (error.message) {
+          console.error('[Levels] Error message:', error.message)
+        }
+        if (isMounted) {
+          setLevelsError(`Failed to load levels: ${error.message || 'Unknown error'}`)
+          setLevels([])
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingLevels(false)
+        }
+      }
+    }
+
+    fetchLevels()
+
+    return () => {
+      isMounted = false
+    }
+  }, [lang, hasCompletedPrerequisite]) // Refetch when prerequisite status changes
+
+  console.log('[Levels] Prerequisite check - hasCompleted:', hasCompletedPrerequisite, 'result:', prerequisiteResult, 'lang:', lang)
 
   // Progress calculation - define completed first
   const completed = new Set(state.levelsByLanguage[lang] || [])
-
-  // Get dynamic levels based on the URL parameter
-  const levels = useMemo(() => {
-    const allLevels = getLevelsForLanguage(lang)
-    // Add difficulty and ensure order is included
-    return allLevels.map(l => ({
-      ...l,
-      difficulty: LEVEL_DATA[lang]?.[l.id]?.difficulty || 'intermediate',
-      order: LEVEL_DATA[lang]?.[l.id]?.order || l.order || 999
-    }))
-  }, [lang])
 
   const easyLevels = useMemo(() => levels.filter(l => l.difficulty === 'easy'), [levels])
   const intermediateLevels = useMemo(() => levels.filter(l => l.difficulty === 'intermediate'), [levels])
@@ -112,10 +152,12 @@ export default function Levels() {
     })
   }, [levels])
   
-  // Progress calculation
+  // Progress calculation (avoid NaN when totalXP is 0)
   const totalXP = levels.reduce((sum, l) => sum + l.xp, 0)
   const currentXP = state.xpByLanguage[lang] || 0
-  const progress = Math.min(100, Math.round((currentXP / totalXP) * 100))
+  const progress = totalXP > 0
+    ? Math.min(100, Math.round((currentXP / totalXP) * 100))
+    : 0
 
   // Navigate to the study route
   const startLevel = (level) => {
@@ -124,23 +166,44 @@ export default function Levels() {
 
   // Handle prerequisite test completion
   const handlePrerequisiteComplete = (score, percentage) => {
+    console.log('[Levels] Prerequisite completed - score:', score, 'percentage:', percentage, 'lang:', lang)
     dispatch({
       type: 'completePrerequisiteTest',
       lang: lang,
       score: score,
       percentage: percentage
     })
+    // Force a small delay to ensure state updates before re-render
+    setTimeout(() => {
+      console.log('[Levels] State after prerequisite completion:', state.prerequisiteTests?.[lang])
+    }, 100)
   }
 
-  // Show prerequisite test if not completed
-  if (!hasCompletedPrerequisite) {
+  // Show prerequisite test ONLY if not completed AND levels are loaded
+  // This ensures we don't block the UI while loading
+  if (!hasCompletedPrerequisite && !loadingLevels) {
     return (
       <PrerequisiteTest
         lang={lang}
-        levelData={LEVEL_DATA}
         onComplete={handlePrerequisiteComplete}
         onExit={() => navigate('/languages')}
       />
+    )
+  }
+
+  // Show loading state while fetching levels
+  if (loadingLevels) {
+    return (
+      <div className="container py-5">
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+          <div className="text-center">
+            <div className="spinner-border text-info mb-3" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="text-light">Loading levels...</p>
+          </div>
+        </div>
+      </div>
     )
   }
 
@@ -191,19 +254,25 @@ export default function Levels() {
       {/* Progress Bar */}
       <div className="mb-5 p-4 card-glow" style={{ backgroundColor: '#151a2d', borderRadius: '10px' }}>
         <h3 className="h5 text-light mb-2">Your Progress</h3>
-        <div className="progress mb-2" style={{ height: '15px', backgroundColor: '#333' }}>
-          <div
-            className="progress-bar bg-info"
-            role="progressbar"
-            style={{ width: `${progress}%` }}
-            aria-valuenow={progress}
-            aria-valuemin="0"
-            aria-valuemax="100"
-          >
-            {progress}%
-          </div>
-        </div>
-        <p className="text-muted">Total XP: {currentXP} / {totalXP}</p>
+        {loadingLevels ? (
+          <div className="text-light">Loading levels...</div>
+        ) : (
+          <>
+            <div className="progress mb-2" style={{ height: '15px', backgroundColor: '#333' }}>
+              <div
+                className="progress-bar bg-info"
+                role="progressbar"
+                style={{ width: `${progress}%` }}
+                aria-valuenow={progress}
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                {progress}%
+              </div>
+            </div>
+            <p className="text-muted">Total XP: {currentXP} / {totalXP}</p>
+          </>
+        )}
       </div>
 
 
@@ -232,6 +301,34 @@ export default function Levels() {
       {/* Level Cards - Show all levels with lock status */}
       <div className="levels-list">
         <div className="row g-4">
+          {levelsError && (
+            <div className="col-12">
+              <div className="alert alert-warning">{levelsError}</div>
+            </div>
+          )}
+          {!hasCompletedPrerequisite && (
+            <div className="col-12">
+              <div className="alert alert-info">
+                <strong>⚠️ Prerequisite Test Required:</strong> Complete the prerequisite test to unlock levels. 
+                <button 
+                  onClick={() => {
+                    // Re-trigger prerequisite test
+                    dispatch({ type: 'RESET_STATE', payload: { ...state, prerequisiteTests: { ...state.prerequisiteTests, [lang]: undefined } } })
+                  }}
+                  className="btn btn-sm btn-primary ms-2"
+                >
+                  Start Prerequisite Test
+                </button>
+              </div>
+            </div>
+          )}
+          {sortedLevels.length === 0 && !loadingLevels && (
+            <div className="col-12">
+              <div className="alert alert-warning text-center">
+                <p>No lessons found for {lang}. Please check if lessons exist in the database.</p>
+              </div>
+            </div>
+          )}
           {sortedLevels.map((lvl, i) => {
             const isDone = completed.has(lvl.id)
             const isLocked = !allowedDifficulties.has(lvl.difficulty)

@@ -9,7 +9,7 @@ import ProfileMenu from '../components/ProfileMenu.jsx'
 import LevelContent from '../components/LevelContent'
 import Quiz from '../components/Quiz'
 import ErrorBoundary from '../components/ErrorBoundary'
-import { getLevelData } from '../data/levelData'
+import { quizApi } from '../utils/quiz/api'
 import '../styles/TheoryQuizPage.css'
 
 
@@ -21,17 +21,96 @@ export default function TheoryQuizPage() {
   const [step, setStep] = useState('theory') // 'theory' or 'quiz'
   const [quizScore, setQuizScore] = useState(0)
   const [quizMaxScore, setQuizMaxScore] = useState(0)
-
-  // Get level data safely
-  let levelData = null
-  try {
-    levelData = getLevelData(lang, levelId)
-  } catch (error) {
-    console.error('Error getting level data:', error)
-  }
+  const [levelData, setLevelData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   
   // Get current total XP for this language
   const currentTotalXP = state?.xpByLanguage?.[lang] || 0
+
+  // Load lesson + quiz data from backend (MongoDB)
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchLessonAndQuiz = async () => {
+      try {
+        setLoading(true)
+        setLoadError(null)
+
+        console.log('[TheoryQuizPage] Fetching lesson and quiz for levelId:', levelId, 'lang:', lang)
+
+        const [lessonRes, questionsRes] = await Promise.all([
+          quizApi.get(`/lessons/${levelId}`).catch(err => {
+            console.error('[TheoryQuizPage] Error fetching lesson:', err)
+            return null
+          }),
+          quizApi.get(`/questions/${levelId}`).catch(err => {
+            console.warn('[TheoryQuizPage] Error fetching questions (may not exist):', err.message)
+            return [] // Return empty array if questions don't exist
+          }),
+        ])
+
+        if (!isMounted) return
+
+        console.log('[TheoryQuizPage] Lesson response:', lessonRes)
+        console.log('[TheoryQuizPage] Questions response:', questionsRes)
+
+        const lesson = lessonRes || {}
+        const questions = Array.isArray(questionsRes) ? questionsRes : []
+
+        if (!lesson || !lesson._id) {
+          console.error('[TheoryQuizPage] Lesson not found or invalid:', lesson)
+          if (isMounted) {
+            setLoadError(`Lesson not found. Please check if the lesson exists in the database.`)
+            setLevelData(null)
+          }
+          return
+        }
+
+        const normalizedLevel = {
+          title: lesson.title || lesson.lessonTitle || 'Level Content',
+          theory: lesson.theory || lesson.description || 'Content coming soon.',
+          xp: typeof lesson.xp === 'number' ? lesson.xp : questions.length * 10,
+          quiz: questions.map(q => ({
+            question: q.question,
+            options: q.options,
+            answer: q.correctAnswer,
+          })),
+          timeLimit: lesson.timeLimit,
+        }
+
+        console.log('[TheoryQuizPage] Normalized level data:', normalizedLevel)
+        console.log('[TheoryQuizPage] Theory length:', normalizedLevel.theory?.length || 0)
+        console.log('[TheoryQuizPage] Quiz questions count:', normalizedLevel.quiz.length)
+
+        if (isMounted) {
+          setLevelData(normalizedLevel)
+        }
+      } catch (error) {
+        console.error('[TheoryQuizPage] Error loading lesson/quiz data from API:', error)
+        console.error('[TheoryQuizPage] Error details:', error.message, error.stack)
+        if (isMounted) {
+          setLoadError(`Failed to load lesson content: ${error.message || 'Unknown error'}`)
+          setLevelData(null)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    if (lang && levelId) {
+      fetchLessonAndQuiz()
+    } else {
+      setLoading(false)
+      setLevelData(null)
+    }
+
+    return () => {
+      isMounted = false
+    }
+  }, [lang, levelId])
 
   // Debug logging
   useEffect(() => {
@@ -43,8 +122,30 @@ export default function TheoryQuizPage() {
     console.log('step:', step)
   }, [lang, levelId, levelData, state, step])
 
-  // Handle case when level data is not found (check if title is "Level Not Found")
-  if (!levelData || levelData.title === 'Level Not Found') {
+  // Set max possible XP once level data (and quiz) are loaded
+  useEffect(() => {
+    if (levelData && levelData.xp && Array.isArray(levelData.quiz) && levelData.quiz.length > 0) {
+      setQuizMaxScore(levelData.xp)
+    }
+  }, [levelData])
+
+  // Loading and not-found states
+  if (loading) {
+    return (
+      <div className="gradient-bg" style={{ minHeight: '100vh', padding: '2rem 0' }}>
+        <div className="container py-5 d-flex justify-content-center align-items-center">
+          <div className="card-glow p-5 text-center" style={{ maxWidth: '600px', backgroundColor: '#151a2d', borderRadius: '10px' }}>
+            <h2 className="neon-text mb-4">Loading Level...</h2>
+            <div className="spinner-border text-info" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!levelData) {
     return (
       <div className="gradient-bg" style={{ minHeight: '100vh', padding: '2rem 0' }}>
         <div className="container py-5">
@@ -65,12 +166,9 @@ export default function TheoryQuizPage() {
             <p className="text-light mb-3">
               The level <strong>"{levelId || 'unknown'}"</strong> for <strong>{lang || 'unknown'}</strong> could not be found.
             </p>
-            <div className="text-muted mb-4 small text-start" style={{ backgroundColor: '#1a1f3a', padding: '1rem', borderRadius: '8px' }}>
-              <strong>Debug Info:</strong><br/>
-              Language: {lang || 'undefined'}<br/>
-              Level ID: {levelId || 'undefined'}<br/>
-              Available languages: javascript, python, java, cpp
-            </div>
+            {loadError && (
+              <p className="text-warning mb-3">{loadError}</p>
+            )}
             <button
               onClick={() => navigate(`/levels/${lang || 'javascript'}`)}
               className="btn btn-neon px-4 py-3"
@@ -82,13 +180,6 @@ export default function TheoryQuizPage() {
       </div>
     )
   }
-
-  useEffect(() => {
-    // Set the max score when data loads
-    if (levelData && levelData.xp && Array.isArray(levelData.quiz) && levelData.quiz.length > 0) {
-        setQuizMaxScore(levelData.xp)
-    }
-  }, [levelData])
 
   const handleQuizComplete = (score) => {
     // Calculate XP earned safely (avoid divide-by-zero)

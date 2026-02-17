@@ -19,6 +19,7 @@ import TheoryQuizPage from './pages/TheoryQuizPage.jsx'
 import Leaderboard from './pages/Leaderboard.jsx'
 // Practice Options and Quiz Pages
 import PracticeOptions from './pages/PracticeOptions.jsx'
+import CodingPractice from './pages/CodingPractice.jsx'
 import QuizDashboard from './pages/quiz/QuizDashboard.jsx'
 import QuizRoom from './pages/quiz/QuizRoom.jsx'
 import QuizLeaderboard from './pages/quiz/QuizLeaderboard.jsx'
@@ -47,6 +48,10 @@ function App() {
             <Route
               path="/practice"
               element={<ProtectedRoute><PracticeOptions /></ProtectedRoute>}
+            />
+            <Route
+              path="/coding-practice"
+              element={<ProtectedRoute><CodingPractice /></ProtectedRoute>}
             />
             <Route
               path="/levels/:lang"

@@ -4,9 +4,11 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { connectCodeHubDB } from './server/config/db.js';
 import languageRoutes from './server/routes/languageRoutes.js';
 import lessonRoutes from './server/routes/lessonRoutes.js';
 import questionRoutes from './server/routes/questionRoutes.js';
+import prerequisiteRoutes from './server/routes/prerequisiteRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -96,17 +98,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // MongoDB Connection - CodeHub Database (for languages, lessons, etc.)
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://sakupatil2004_db_user:<db_password>@cluster0.f23zbb5.mongodb.net/CodeHub?retryWrites=true&w=majority&appName=Cluster0';
-
-mongoose.connect(MONGODB_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB Atlas');
-    console.log('📊 Database: CodeHub');
-  })
-  .catch((error) => {
-    console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
-  });
+// Connection will be established before server starts (see bottom of file)
 
 // Quiz Database Connection - IIT_project Database (for quiz questions)
 // Use environment variable or fallback to the quiz database connection string
@@ -186,14 +178,21 @@ let rooms = {};
 app.use('/api/languages', languageRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/prerequisites', prerequisiteRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'CodeHub API is running',
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
-    quizDatabase: quizConnection.readyState === 1 ? 'Connected' : 'Disconnected'
+    codeHubDatabase: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+    quizDatabase: quizConnection.readyState === 1 ? 'Connected' : 'Disconnected',
+    endpoints: {
+      languages: '/api/languages',
+      lessons: '/api/lessons',
+      questions: '/api/questions',
+      prerequisites: '/api/prerequisites'
+    }
   });
 });
 
@@ -236,7 +235,8 @@ app.get('/', (req, res) => {
       health: '/api/health',
       languages: '/api/languages',
       lessons: '/api/lessons',
-      questions: '/api/questions'
+      questions: '/api/questions',
+      prerequisites: '/api/prerequisites'
     }
   });
 });
@@ -716,10 +716,30 @@ app.put('/api/settings', async (req, res) => {
   }
 });
 
-// Start server
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📡 API endpoints available at http://localhost:${PORT}/api`);
-  console.log(`🔌 Socket.io server ready`);
-});
+// Start server only after MongoDB connection is established
+async function startServer() {
+  try {
+    // Connect to CodeHub MongoDB database
+    await connectCodeHubDB();
+    
+    // Start HTTP server
+    httpServer.listen(PORT, () => {
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`📡 API endpoints available at http://localhost:${PORT}/api`);
+      console.log(`🔌 Socket.io server ready`);
+      console.log(`\n📚 Available API endpoints:`);
+      console.log(`   - GET  /api/languages`);
+      console.log(`   - GET  /api/lessons`);
+      console.log(`   - GET  /api/questions`);
+      console.log(`   - GET  /api/prerequisites`);
+      console.log(`   - GET  /api/health`);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
