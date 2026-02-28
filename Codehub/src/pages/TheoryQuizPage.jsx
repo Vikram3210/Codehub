@@ -1,7 +1,7 @@
 // src/pages/TheoryQuizPage.jsx (CORRECTED IMPORTS)
 
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { useApp } from '../hooks/useApp' 
 import { useAuth } from '../state/useAuth.js' 
@@ -15,6 +15,7 @@ import '../styles/TheoryQuizPage.css'
 
 export default function TheoryQuizPage() {
   const { lang, levelId } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const { dispatch, state } = useApp()
 
@@ -25,10 +26,50 @@ export default function TheoryQuizPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   
+  // Possibly pre-loaded lesson when navigating from Levels
+  const initialLesson = location.state?.lesson || null
+
+  // Helper: build normalized level data from a lesson document
+  const buildLevelDataFromLesson = (lesson) => {
+    if (!lesson) return null
+
+    const rawQuestions = Array.isArray(lesson.questions)
+      ? lesson.questions
+      : Array.isArray(lesson.mcqs)
+      ? lesson.mcqs
+      : []
+
+    return {
+      title: lesson.title || lesson.lessonTitle || 'Level Content',
+      theory: lesson.theory || lesson.description || 'Content coming soon.',
+      xp: typeof lesson.xp === 'number' ? lesson.xp : rawQuestions.length * 10,
+      quiz: rawQuestions.map(q => ({
+        question: q.question,
+        options: q.options,
+        // Match Quiz component: answer is the correct option VALUE
+        answer: typeof q.answer === 'number'
+          ? q.options?.[q.answer]
+          : q.correctAnswer ?? q.answer,
+      })),
+      timeLimit: lesson.timeLimit,
+    }
+  }
+
+  // Initialize levelData from navigation state if available
+  useEffect(() => {
+    if (initialLesson && !levelData) {
+      const normalized = buildLevelDataFromLesson(initialLesson)
+      console.log('[TheoryQuizPage] Using lesson from navigation state:', normalized)
+      setLevelData(normalized)
+      setLoading(false)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLesson])
+
   // Get current total XP for this language
   const currentTotalXP = state?.xpByLanguage?.[lang] || 0
 
-  // Load lesson + quiz data from backend (MongoDB)
+  // Load lesson (+ embedded quiz questions) from backend (MongoDB)
   useEffect(() => {
     let isMounted = true
 
@@ -37,26 +78,24 @@ export default function TheoryQuizPage() {
         setLoading(true)
         setLoadError(null)
 
-        console.log('[TheoryQuizPage] Fetching lesson and quiz for levelId:', levelId, 'lang:', lang)
+        // If we already have a lesson from navigation state, skip API fetch
+        if (initialLesson) {
+          console.log('[TheoryQuizPage] Skipping fetch - using initialLesson from navigation state')
+          return
+        }
 
-        const [lessonRes, questionsRes] = await Promise.all([
-          quizApi.get(`/lessons/${levelId}`).catch(err => {
-            console.error('[TheoryQuizPage] Error fetching lesson:', err)
-            return null
-          }),
-          quizApi.get(`/questions/${levelId}`).catch(err => {
-            console.warn('[TheoryQuizPage] Error fetching questions (may not exist):', err.message)
-            return [] // Return empty array if questions don't exist
-          }),
-        ])
+        console.log('[TheoryQuizPage] Fetching lesson (with embedded questions) for levelId:', levelId, 'lang:', lang)
+
+        const lessonRes = await quizApi.get(`/lessons/${levelId}`).catch(err => {
+          console.error('[TheoryQuizPage] Error fetching lesson:', err)
+          return null
+        })
 
         if (!isMounted) return
 
         console.log('[TheoryQuizPage] Lesson response:', lessonRes)
-        console.log('[TheoryQuizPage] Questions response:', questionsRes)
 
         const lesson = lessonRes || {}
-        const questions = Array.isArray(questionsRes) ? questionsRes : []
 
         if (!lesson || !lesson._id) {
           console.error('[TheoryQuizPage] Lesson not found or invalid:', lesson)
@@ -67,14 +106,25 @@ export default function TheoryQuizPage() {
           return
         }
 
+        // Use embedded questions array from the lesson document
+        const rawQuestions = Array.isArray(lesson.questions)
+          ? lesson.questions
+          : Array.isArray(lesson.mcqs)
+          ? lesson.mcqs
+          : []
+
+        console.log('[TheoryQuizPage] Raw embedded questions count:', rawQuestions.length)
+
         const normalizedLevel = {
           title: lesson.title || lesson.lessonTitle || 'Level Content',
           theory: lesson.theory || lesson.description || 'Content coming soon.',
-          xp: typeof lesson.xp === 'number' ? lesson.xp : questions.length * 10,
-          quiz: questions.map(q => ({
+          xp: typeof lesson.xp === 'number' ? lesson.xp : rawQuestions.length * 10,
+          quiz: rawQuestions.map(q => ({
             question: q.question,
             options: q.options,
-            answer: q.correctAnswer,
+            // Quiz component expects `answer` to equal the correct option value.
+            // We support both `correctAnswer` (string) and `answer` (string) fields.
+            answer: q.correctAnswer ?? q.answer,
           })),
           timeLimit: lesson.timeLimit,
         }

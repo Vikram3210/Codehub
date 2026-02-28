@@ -70,7 +70,7 @@ router.get('/', async (req, res) => {
       const query = { $or: matchConditions };
       console.log('[Lessons API] Final query:', JSON.stringify(query, null, 2));
       
-      lessons = await Lesson.find(query).lean().sort({ levelNumber: 1 });
+      lessons = await Lesson.find(query).lean().sort({ order: 1, levelNumber: 1 });
       console.log('[Lessons API] Found', lessons.length, 'lessons');
       
       // Debug: Log first lesson structure if found
@@ -96,7 +96,7 @@ router.get('/', async (req, res) => {
       }
     } else {
       // No languageKey filter - return all lessons
-      lessons = await Lesson.find({}).lean().sort({ levelNumber: 1 });
+      lessons = await Lesson.find({}).lean().sort({ order: 1, levelNumber: 1 });
       console.log('[Lessons API] No languageKey filter - returning all', lessons.length, 'lessons');
     }
     
@@ -122,12 +122,12 @@ router.get('/language/:languageKey', async (req, res) => {
           { languageId: languageId },
           { languageId: new mongoose.Types.ObjectId(languageId) },
         ],
-      }).lean().sort({ levelNumber: 1 });
+      }).lean().sort({ order: 1, levelNumber: 1 });
     } else {
       // Fallback: match by levelId prefix if language document not found
       lessons = await Lesson.find({
         levelId: new RegExp(`^${key}_`, 'i'),
-      }).lean().sort({ levelNumber: 1 });
+      }).lean().sort({ order: 1, levelNumber: 1 });
     }
     
     res.json(lessons);
@@ -136,16 +136,26 @@ router.get('/language/:languageKey', async (req, res) => {
   }
 });
 
-// Get lesson by ID
+// Get lesson by ID (supports both MongoDB _id and legacy levelId string)
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    console.log('[Lessons API] Fetching lesson by ID:', id);
+    console.log('[Lessons API] Fetching lesson by ID or levelId:', id);
 
-    const lesson = await Lesson.findById(id).lean();
+    let lesson = null;
+
+    // Try as ObjectId (_id)
+    if (mongoose.isValidObjectId(id)) {
+      lesson = await Lesson.findById(id).lean();
+    }
+
+    // Fallback: try as legacy levelId (e.g. \"java_00_intro\")
+    if (!lesson) {
+      lesson = await Lesson.findOne({ levelId: id }).lean();
+    }
 
     if (!lesson) {
-      console.log('[Lessons API] Lesson not found for ID:', id);
+      console.log('[Lessons API] Lesson not found for identifier:', id);
       return res.status(404).json({ error: 'Lesson not found' });
     }
 
@@ -155,6 +165,11 @@ router.get('/:id', async (req, res) => {
       hasTheory: !!lesson.theory,
       theoryLength: lesson.theory?.length || 0,
       levelNumber: lesson.levelNumber,
+      questionsCount: Array.isArray(lesson.questions)
+        ? lesson.questions.length
+        : Array.isArray(lesson.mcqs)
+        ? lesson.mcqs.length
+        : 0,
     });
 
     // Only filter by isActive if the field exists and is explicitly false

@@ -49,13 +49,21 @@ export default function CodingPractice() {
     const value = event.target.value;
     setLanguage(value);
     setCode(DEFAULT_SNIPPETS[value] || '');
-    setOutput(`// Switched to ${LANGUAGE_LABELS[value]}.\n// Code execution backend coming soon.\n`);
+    if (value === 'javascript') {
+      setOutput(`// Switched to ${LANGUAGE_LABELS[value]}.\n// Ready to run code locally in the browser.\n`);
+    } else {
+      setOutput(
+        `// Switched to ${LANGUAGE_LABELS[value]}.\n` +
+        '// This editor supports writing code for this language.\n' +
+        '// To execute it, you would need a self-hosted Judge0 (or similar) backend.\n',
+      );
+    }
   };
 
   const handleRun = () => {
     setIsRunning(true);
 
-    // Lightweight, client-side runner for JavaScript
+    // Fully supported: JavaScript runs locally in the browser
     if (language === 'javascript') {
       try {
         const logs = [];
@@ -80,14 +88,14 @@ export default function CodingPractice() {
       return;
     }
 
-    // For non-JS languages, keep structure ready for backend integration
-    setTimeout(() => {
-      setIsRunning(false);
-      setOutput(
-        `// ${LANGUAGE_LABELS[language]} execution is not wired yet.\n` +
-        '// Connect this button to Judge0 or another code runner API.\n',
-      );
-    }, 400);
+    // For non-JS languages, we keep the editor + structure ready,
+    // but **do not** call an external paid API by default.
+    setOutput(
+      `// ${LANGUAGE_LABELS[language]} execution is not available in the free local setup.\n` +
+      '// You can still write and edit code here.\n' +
+      '// To execute this language, connect Coding Practice to a self-hosted Judge0 instance or another code runner API.\n',
+    );
+    setIsRunning(false);
   };
 
   return (

@@ -9,6 +9,7 @@ import languageRoutes from './server/routes/languageRoutes.js';
 import lessonRoutes from './server/routes/lessonRoutes.js';
 import questionRoutes from './server/routes/questionRoutes.js';
 import prerequisiteRoutes from './server/routes/prerequisiteRoutes.js';
+import codeExecutionRoutes from './server/routes/codeExecutionRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -179,6 +180,7 @@ app.use('/api/languages', languageRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/prerequisites', prerequisiteRoutes);
+app.use('/api', codeExecutionRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -191,7 +193,8 @@ app.get('/api/health', (req, res) => {
       languages: '/api/languages',
       lessons: '/api/lessons',
       questions: '/api/questions',
-      prerequisites: '/api/prerequisites'
+      prerequisites: '/api/prerequisites',
+      executeCode: '/api/execute-code'
     }
   });
 });

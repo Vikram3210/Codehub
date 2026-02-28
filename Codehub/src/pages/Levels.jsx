@@ -63,6 +63,8 @@ export default function Levels() {
             xp: typeof lesson.xp === 'number' ? lesson.xp : 0,
             difficulty: lesson.difficulty || 'intermediate',
             order: typeof lesson.order === 'number' ? lesson.order : lesson.levelNumber || 999,
+            // Keep full lesson so we can reuse it in TheoryQuizPage
+            _rawLesson: lesson,
           }
         })
 
@@ -159,9 +161,11 @@ export default function Levels() {
     ? Math.min(100, Math.round((currentXP / totalXP) * 100))
     : 0
 
-  // Navigate to the study route
+  // Navigate to the study route and pass full lesson via navigation state
   const startLevel = (level) => {
-    navigate(`/study/${lang}/${level.id}`);
+    navigate(`/study/${lang}/${level.id}`, {
+      state: { lesson: level._rawLesson },
+    });
   };
 
   // Handle prerequisite test completion
