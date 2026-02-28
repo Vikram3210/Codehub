@@ -103,8 +103,12 @@ app.use(express.urlencoded({ extended: true }));
 
 // Quiz Database Connection - IIT_project Database (for quiz questions)
 // Use environment variable or fallback to the quiz database connection string
-const QUIZ_MONGODB_URI = process.env.QUIZ_MONGODB_URI || 'mongodb+srv://ayushshirke123_db_user:IIT_project@quizappcluster.hnwrp1w.mongodb.net/IIT_project?retryWrites=true&w=majority&appName=QuizAppCluster';
+const QUIZ_MONGODB_URI = process.env.QUIZ_MONGODB_URI;
 
+if (!QUIZ_MONGODB_URI) {
+  console.error("❌ QUIZ_MONGODB_URI is not set in environment variables");
+  process.exit(1);
+}
 const quizConnection = mongoose.createConnection(QUIZ_MONGODB_URI, {
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
