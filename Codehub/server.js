@@ -11,37 +11,6 @@ import questionRoutes from './server/routes/questionRoutes.js';
 import prerequisiteRoutes from './server/routes/prerequisiteRoutes.js';
 import codeExecutionRoutes from './server/routes/codeExecutionRoutes.js';
 
-/* ==============================
-   ✅ SETTINGS ROUTES
-================================= */
-
-app.get('/api/settings/:username', async (req, res) => {
-  try {
-    const { username } = req.params;
-    let doc = await UserSettings.findOne({ username });
-    if (!doc) {
-      doc = await UserSettings.create({ username });
-    }
-    res.json(doc);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch settings' });
-  }
-});
-
-app.put('/api/settings', async (req, res) => {
-  try {
-    const { username, settings } = req.body;
-    await UserSettings.updateOne(
-      { username },
-      { $set: { ...settings, username } },
-      { upsert: true }
-    );
-    const saved = await UserSettings.findOne({ username });
-    res.json({ success: true, settings: saved });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to save settings' });
-  }
-});
 
 dotenv.config();
 
@@ -75,6 +44,37 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
+/* ==============================
+   ✅ SETTINGS ROUTES
+================================= */
+
+app.get('/api/settings/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    let doc = await UserSettings.findOne({ username });
+    if (!doc) {
+      doc = await UserSettings.create({ username });
+    }
+    res.json(doc);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch settings' });
+  }
+});
+
+app.put('/api/settings', async (req, res) => {
+  try {
+    const { username, settings } = req.body;
+    await UserSettings.updateOne(
+      { username },
+      { $set: { ...settings, username } },
+      { upsert: true }
+    );
+    const saved = await UserSettings.findOne({ username });
+    res.json({ success: true, settings: saved });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save settings' });
+  }
+});
 
 /* ==============================
    ✅ SOCKET.IO CORS
