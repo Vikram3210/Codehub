@@ -42,11 +42,6 @@ const QuizRoom = () => {
 
   const SOCKET_URL = import.meta.env.VITE_API_URL;
 
-  const socket = io(SOCKET_URL, {
-    transports: ['websocket'],
-    withCredentials: true
-  });
-
   useEffect(() => {
     const u = currentUser;
     const displayName = (u?.displayName || u?.email || 'Player');
