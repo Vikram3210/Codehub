@@ -12,6 +12,7 @@ import prerequisiteRoutes from './server/routes/prerequisiteRoutes.js';
 import codeExecutionRoutes from './server/routes/codeExecutionRoutes.js';
 import UserSettings from './server/models/UserSettings.js';
 import QuizScore from './server/models/QuizScore.js';
+import Question from './server/models/Question.js';
 
 dotenv.config();
 
@@ -52,9 +53,9 @@ app.use(cors({
 app.get('/api/settings/:username', async (req, res) => {
   try {
     const { username } = req.params;
-    let doc = await UserSettings.findOne({ username });
+    let doc = await UserSettingsQuiz.findOne({ username });
     if (!doc) {
-      doc = await UserSettings.create({ username });
+      doc = await UserSettingsQuiz.create({ username });
     }
     res.json(doc);
   } catch (err) {
@@ -65,12 +66,12 @@ app.get('/api/settings/:username', async (req, res) => {
 app.put('/api/settings', async (req, res) => {
   try {
     const { username, settings } = req.body;
-    await UserSettings.updateOne(
+    await UserSettingsQuiz.updateOne(
       { username },
       { $set: { ...settings, username } },
       { upsert: true }
     );
-    const saved = await UserSettings.findOne({ username });
+    const saved = await UserSettingsQuiz.findOne({ username });
     res.json({ success: true, settings: saved });
   } catch (err) {
     res.status(500).json({ error: 'Failed to save settings' });
@@ -106,20 +107,38 @@ app.use(express.urlencoded({ extended: true }));
 ================================= */
 
 const QUIZ_MONGODB_URI = process.env.QUIZ_MONGODB_URI;
+const QUIZ_DB_NAME = process.env.QUIZ_DB_NAME || 'IIT_project';
 
 if (!QUIZ_MONGODB_URI) {
   console.error("❌ QUIZ_MONGODB_URI is not set in environment variables");
   process.exit(1);
 }
 
-const quizConnection = mongoose.createConnection(QUIZ_MONGODB_URI);
+// Connect to quiz DB (e.g. QuizAppCluster / IIT_project: questions, quizscores, quizusersettings, etc.)
+const quizConnection = mongoose.createConnection(QUIZ_MONGODB_URI, {
+  dbName: QUIZ_DB_NAME,
+});
 
 quizConnection.on('connected', () => {
-  console.log('✅ Quiz MongoDB Connected');
+  console.log('✅ Quiz MongoDB Connected:', QUIZ_DB_NAME);
 });
 
 quizConnection.on('error', (err) => {
   console.error('❌ Quiz MongoDB Error:', err.message);
+});
+
+/* ==============================
+   ✅ QUIZ MODELS (IIT_project: quizscores, quizusersettings, questions)
+================================= */
+
+const QuizScoreQuiz = quizConnection.model('QuizScore', QuizScore.schema.clone());
+const UserSettingsQuiz = quizConnection.model('UserSettings', UserSettings.schema.clone(), 'quizusersettings');
+const QuestionQuiz = quizConnection.model('QuizQuestion', Question.schema.clone(), 'questions');
+
+const { registerQuizSocket } = await import('./server/quizSocket.js');
+registerQuizSocket(io, {
+  PrerequisiteQuestion: QuestionQuiz,
+  Question: QuestionQuiz,
 });
 
 /* ==============================
@@ -133,12 +152,12 @@ app.use('/api/prerequisites', prerequisiteRoutes);
 app.use('/api', codeExecutionRoutes);
 
 /* ==============================
-   ✅ QUIZ LEADERBOARD (aggregate by userId from QuizScore)
+   ✅ QUIZ LEADERBOARD (from QUIZ DB)
 ================================= */
 
 app.get('/api/leaderboard', async (req, res) => {
   try {
-    const agg = await QuizScore.aggregate([
+    const agg = await QuizScoreQuiz.aggregate([
       { $group: { _id: '$userId', totalScore: { $sum: '$score' }, gamesPlayed: { $sum: 1 } } },
       { $addFields: { averageScore: { $round: [{ $divide: ['$totalScore', '$gamesPlayed'] }, 0] } } },
       { $sort: { totalScore: -1 } },
@@ -158,12 +177,12 @@ app.get('/api/leaderboard', async (req, res) => {
 app.get('/api/profile/:username', async (req, res) => {
   try {
     const username = decodeURIComponent(req.params.username);
-    const scores = await QuizScore.find({ userId: username });
+    const scores = await QuizScoreQuiz.find({ userId: username });
     const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
     const gamesPlayed = scores.length;
     const averageScore = gamesPlayed ? Math.round(totalScore / gamesPlayed) : 0;
 
-    const rankAgg = await QuizScore.aggregate([
+    const rankAgg = await QuizScoreQuiz.aggregate([
       { $group: { _id: '$userId', totalScore: { $sum: '$score' } } },
       { $sort: { totalScore: -1 } },
       { $group: { _id: null, ranks: { $push: '$_id' } } },
@@ -192,7 +211,7 @@ app.put('/api/profile/username', async (req, res) => {
     if (!currentUsername || !newUsername || currentUsername === newUsername) {
       return res.status(400).json({ error: 'currentUsername and newUsername required and must differ' });
     }
-    const result = await QuizScore.updateMany(
+    const result = await QuizScoreQuiz.updateMany(
       { userId: currentUsername },
       { $set: { userId: newUsername } }
     );
