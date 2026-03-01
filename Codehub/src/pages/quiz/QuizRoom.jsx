@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { useAuth } from '../../state/useAuth';
 import { quizApi } from '../../utils/quiz/api';
+import { SOCKET_URL } from '../../config/env.js';
 import './QuizRoom.css';
 
 const QuizRoom = () => {
@@ -39,8 +40,6 @@ const QuizRoom = () => {
   const [waitingForOthers, setWaitingForOthers] = useState(false);
   const [currentAnswers, setCurrentAnswers] = useState({});
   const [showFinalResults, setShowFinalResults] = useState(false);
-
-  const SOCKET_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const u = currentUser;

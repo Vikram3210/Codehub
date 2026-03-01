@@ -1,9 +1,7 @@
 // src/utils/quiz/api.js
-// Quiz API utility for CodeHub
+// Quiz API utility for CodeHub - uses central env config so all calls use /api base.
 
-const API_BASE = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL}/api`
-  : 'http://localhost:5000/api';
+import { API_BASE } from '../../config/env.js';
 
 export const quizApi = {
   async get(endpoint) {

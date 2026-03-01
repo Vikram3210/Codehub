@@ -10,7 +10,7 @@ import lessonRoutes from './server/routes/lessonRoutes.js';
 import questionRoutes from './server/routes/questionRoutes.js';
 import prerequisiteRoutes from './server/routes/prerequisiteRoutes.js';
 import codeExecutionRoutes from './server/routes/codeExecutionRoutes.js';
-
+import UserSettings from './server/models/UserSettings.js';
 
 dotenv.config();
 
@@ -20,29 +20,29 @@ const PORT = process.env.PORT || 5000;
 
 /* ==============================
    ✅ PROPER CORS CONFIGURATION
+   Localhost (any port) + Vercel + FRONTEND_URL
 ================================= */
 
-const allowedOrigins = [
-  process.env.FRONTEND_URL,                 // From Render env
-  'https://codehub-peach.vercel.app',       // Your current Vercel domain
+const allowedOriginList = [
+  process.env.FRONTEND_URL,
+  'https://codehub-peach.vercel.app',
   'http://localhost:5173',
   'http://localhost:5174',
-  'http://localhost:3000'
+  'http://localhost:3000',
 ].filter(Boolean);
+
+const localhostRegex = /^http:\/\/localhost(:\d+)?$/;
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // Allow Postman / curl
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
+    if (!origin) return callback(null, true);
+    if (allowedOriginList.includes(origin)) return callback(null, true);
+    if (localhostRegex.test(origin)) return callback(null, true);
     console.error("❌ Blocked by CORS:", origin);
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true,
 }));
 /* ==============================
    ✅ SETTINGS ROUTES
@@ -82,7 +82,12 @@ app.put('/api/settings', async (req, res) => {
 
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOriginList.includes(origin)) return callback(null, true);
+      if (localhostRegex.test(origin)) return callback(null, true);
+      return callback(new Error("Not allowed by CORS"), false);
+    },
     methods: ['GET', 'POST'],
     credentials: true,
   },

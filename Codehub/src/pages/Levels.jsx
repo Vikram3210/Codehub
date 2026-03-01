@@ -37,10 +37,7 @@ export default function Levels() {
         setLevelsError(null)
 
         const apiUrl = `/lessons?languageKey=${lang}`
-        const fullUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}${apiUrl}`
         console.log('[Levels] Fetching lessons for languageKey:', lang)
-        console.log('[Levels] Full API URL:', fullUrl)
-        
         const data = await quizApi.get(apiUrl)
         console.log('[Levels] Raw API response:', data)
         console.log('[Levels] Response type:', typeof data, 'Is array?', Array.isArray(data))
