@@ -11,6 +11,7 @@ import questionRoutes from './server/routes/questionRoutes.js';
 import prerequisiteRoutes from './server/routes/prerequisiteRoutes.js';
 import codeExecutionRoutes from './server/routes/codeExecutionRoutes.js';
 import UserSettings from './server/models/UserSettings.js';
+import QuizScore from './server/models/QuizScore.js';
 
 dotenv.config();
 
@@ -130,6 +131,77 @@ app.use('/api/lessons', lessonRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/prerequisites', prerequisiteRoutes);
 app.use('/api', codeExecutionRoutes);
+
+/* ==============================
+   ✅ QUIZ LEADERBOARD (aggregate by userId from QuizScore)
+================================= */
+
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const agg = await QuizScore.aggregate([
+      { $group: { _id: '$userId', totalScore: { $sum: '$score' }, gamesPlayed: { $sum: 1 } } },
+      { $addFields: { averageScore: { $round: [{ $divide: ['$totalScore', '$gamesPlayed'] }, 0] } } },
+      { $sort: { totalScore: -1 } },
+      { $project: { username: '$_id', totalScore: 1, gamesPlayed: 1, averageScore: 1, _id: 0 } },
+    ]);
+    res.json(agg);
+  } catch (err) {
+    console.error('Leaderboard error:', err);
+    res.status(500).json({ error: 'Failed to load leaderboard' });
+  }
+});
+
+/* ==============================
+   ✅ QUIZ PROFILE (stats from QuizScore + username update)
+================================= */
+
+app.get('/api/profile/:username', async (req, res) => {
+  try {
+    const username = decodeURIComponent(req.params.username);
+    const scores = await QuizScore.find({ userId: username });
+    const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
+    const gamesPlayed = scores.length;
+    const averageScore = gamesPlayed ? Math.round(totalScore / gamesPlayed) : 0;
+
+    const rankAgg = await QuizScore.aggregate([
+      { $group: { _id: '$userId', totalScore: { $sum: '$score' } } },
+      { $sort: { totalScore: -1 } },
+      { $group: { _id: null, ranks: { $push: '$_id' } } },
+      { $unwind: { path: '$ranks', includeArrayIndex: 'rank' } },
+      { $match: { ranks: username } },
+      { $project: { rank: { $add: ['$rank', 1] }, _id: 0 } },
+    ]);
+    const rank = rankAgg[0]?.rank ?? 0;
+
+    res.json({
+      username,
+      totalScore,
+      gamesPlayed,
+      averageScore,
+      rank,
+    });
+  } catch (err) {
+    console.error('Profile GET error:', err);
+    res.status(500).json({ error: 'Failed to load profile' });
+  }
+});
+
+app.put('/api/profile/username', async (req, res) => {
+  try {
+    const { currentUsername, newUsername } = req.body;
+    if (!currentUsername || !newUsername || currentUsername === newUsername) {
+      return res.status(400).json({ error: 'currentUsername and newUsername required and must differ' });
+    }
+    const result = await QuizScore.updateMany(
+      { userId: currentUsername },
+      { $set: { userId: newUsername } }
+    );
+    res.json({ success: true, updated: result.modifiedCount });
+  } catch (err) {
+    console.error('Profile username update error:', err);
+    res.status(500).json({ error: 'Failed to update username' });
+  }
+});
 
 /* ==============================
    ✅ HEALTH CHECK
