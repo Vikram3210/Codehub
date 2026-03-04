@@ -63,7 +63,7 @@ function clearRoomTimer(room) {
 }
 
 export function registerQuizSocket(io, quizModels = {}) {
-  const { PrerequisiteQuestion: Prereq, Question: Q } = quizModels;
+  const { PrerequisiteQuestion: Prereq, Question: Q, QuizScore } = quizModels;
 
   io.on('connection', (socket) => {
     socket.emit('connected', { message: 'Connected to quiz server' });
@@ -191,7 +191,7 @@ export function registerQuizSocket(io, quizModels = {}) {
         io.to(roomCode).emit('timer', room.timeLeft);
         if (room.timeLeft <= 0) {
           clearRoomTimer(room);
-          finishQuestion(io, room);
+          finishQuestion(io, room, QuizScore);
         }
       }, 1000);
     });
@@ -223,9 +223,18 @@ export function registerQuizSocket(io, quizModels = {}) {
         players: room.players.map((p) => ({ username: p.username, score: p.score ?? 0 })),
       });
 
+<<<<<<< HEAD
       // Do NOT reveal the correct answer early.
       // We intentionally let the per-question timer run until it hits 0,
       // and only then finishQuestion() will emit the correct answer.
+=======
+      const totalPlayers = room.players.length;
+      const answered = Object.keys(room.currentAnswers).length;
+      if (answered >= totalPlayers) {
+        clearRoomTimer(room);
+        finishQuestion(io, room, QuizScore);
+      }
+>>>>>>> b7fd677 (404 error fix on refreshing)
     });
 
     socket.on('chatMessage', (payload) => {
@@ -244,7 +253,7 @@ export function registerQuizSocket(io, quizModels = {}) {
       const room = rooms.get(roomCode);
       if (!room) return;
 
-      room.players = room.players.filter((p) => p.username !== username || p.socketId === socket.id);
+      room.players = room.players.filter((p) => p.socketId !== socket.id);
       if (room.players.length === 0) {
         clearRoomTimer(room);
         rooms.delete(roomCode);
@@ -258,7 +267,7 @@ export function registerQuizSocket(io, quizModels = {}) {
   });
 }
 
-function finishQuestion(io, room) {
+function finishQuestion(io, room, QuizScore) {
   const roomCode = room.roomCode;
   const q = room.questions[room.currentQuestionIndex];
   io.to(roomCode).emit('questionFinished', {
@@ -273,6 +282,24 @@ function finishQuestion(io, room) {
     const finalScores = room.players
       .map((p) => ({ username: p.username, score: p.score ?? 0 }))
       .sort((a, b) => b.score - a.score);
+
+    // Persist final scores to the quiz scores collection (for leaderboard/profile)
+    if (QuizScore) {
+      const domain = room.settings?.domain || 'Mixed';
+      const docs = finalScores.map((p) => ({
+        username: p.username,
+        score: p.score ?? 0,
+        domain,
+      }));
+      QuizScore.insertMany(docs)
+        .then(() => {
+          console.log('✅ Saved quiz scores for room', roomCode);
+        })
+        .catch((err) => {
+          console.error('❌ Failed to save quiz scores for room', roomCode, err);
+        });
+    }
+
     io.to(roomCode).emit('quizFinished', { finalScores });
     rooms.delete(roomCode);
     return;
@@ -287,7 +314,7 @@ function finishQuestion(io, room) {
     io.to(roomCode).emit('timer', room.timeLeft);
     if (room.timeLeft <= 0) {
       clearRoomTimer(room);
-      finishQuestion(io, room);
+      finishQuestion(io, room, QuizScore);
     }
   }, 1000);
 

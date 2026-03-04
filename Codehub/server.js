@@ -139,6 +139,7 @@ const { registerQuizSocket } = await import('./server/quizSocket.js');
 registerQuizSocket(io, {
   PrerequisiteQuestion: QuestionQuiz,
   Question: QuestionQuiz,
+  QuizScore: QuizScoreQuiz,
 });
 
 /* ==============================
@@ -158,7 +159,13 @@ app.use('/api', codeExecutionRoutes);
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const agg = await QuizScoreQuiz.aggregate([
-      { $group: { _id: '$userId', totalScore: { $sum: '$score' }, gamesPlayed: { $sum: 1 } } },
+      {
+        $group: {
+          _id: '$username',
+          totalScore: { $sum: '$score' },
+          gamesPlayed: { $sum: 1 },
+        },
+      },
       { $addFields: { averageScore: { $round: [{ $divide: ['$totalScore', '$gamesPlayed'] }, 0] } } },
       { $sort: { totalScore: -1 } },
       { $project: { username: '$_id', totalScore: 1, gamesPlayed: 1, averageScore: 1, _id: 0 } },
@@ -177,13 +184,13 @@ app.get('/api/leaderboard', async (req, res) => {
 app.get('/api/profile/:username', async (req, res) => {
   try {
     const username = decodeURIComponent(req.params.username);
-    const scores = await QuizScoreQuiz.find({ userId: username });
+    const scores = await QuizScoreQuiz.find({ username });
     const totalScore = scores.reduce((sum, s) => sum + s.score, 0);
     const gamesPlayed = scores.length;
     const averageScore = gamesPlayed ? Math.round(totalScore / gamesPlayed) : 0;
 
     const rankAgg = await QuizScoreQuiz.aggregate([
-      { $group: { _id: '$userId', totalScore: { $sum: '$score' } } },
+      { $group: { _id: '$username', totalScore: { $sum: '$score' } } },
       { $sort: { totalScore: -1 } },
       { $group: { _id: null, ranks: { $push: '$_id' } } },
       { $unwind: { path: '$ranks', includeArrayIndex: 'rank' } },
@@ -212,8 +219,8 @@ app.put('/api/profile/username', async (req, res) => {
       return res.status(400).json({ error: 'currentUsername and newUsername required and must differ' });
     }
     const result = await QuizScoreQuiz.updateMany(
-      { userId: currentUsername },
-      { $set: { userId: newUsername } }
+      { username: currentUsername },
+      { $set: { username: newUsername } }
     );
     res.json({ success: true, updated: result.modifiedCount });
   } catch (err) {
