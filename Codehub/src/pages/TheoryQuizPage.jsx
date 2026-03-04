@@ -18,6 +18,7 @@ export default function TheoryQuizPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const { dispatch, state } = useApp()
+  const { currentUser } = useAuth()
 
   const [step, setStep] = useState('theory') // 'theory' or 'quiz'
   const [quizScore, setQuizScore] = useState(0)
@@ -28,6 +29,11 @@ export default function TheoryQuizPage() {
   
   // Possibly pre-loaded lesson when navigating from Levels
   const initialLesson = location.state?.lesson || null
+
+  const userName =
+    currentUser?.displayName ||
+    currentUser?.email?.split('@')[0] ||
+    'Coder'
 
   // Helper: build normalized level data from a lesson document
   const buildLevelDataFromLesson = (lesson) => {
@@ -241,11 +247,21 @@ export default function TheoryQuizPage() {
 
     // Dispatch the action to complete the level and add XP
     dispatch({ 
-        type: 'completeLevel', 
-        lang: lang, 
-        levelId: levelId, 
-        xp: xpEarned // Pass the dynamic XP score
+      type: 'completeLevel', 
+      lang: lang, 
+      levelId: levelId, 
+      xp: xpEarned
     })
+
+    // Update aggregate language accuracy stats for progress tracking
+    if (totalQuestions > 0) {
+      dispatch({
+        type: 'updateLanguageStats',
+        lang: lang,
+        totalQuestions,
+        correctQuestions: score,
+      })
+    }
 
     setStep('complete')
   }
@@ -409,25 +425,50 @@ export default function TheoryQuizPage() {
 
   return (
     <div className="gradient-bg" style={{ minHeight: '100vh', padding: '2rem 0' }}>
-    <div className="container py-5">
+      <div className="container py-5">
         <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-          <Motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(`/levels/${lang}`)}
-            className="btn btn-outline-light"
-            title="Back to Levels"
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            style={{ whiteSpace: 'nowrap' }}
+          {/* Left: profile pill, clickable to /profile */}
+          <Motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate('/profile')}
+            className="btn btn-outline-light d-flex align-items-center gap-2 px-3 py-2"
+            style={{ borderRadius: '999px' }}
           >
-            ← Back to {lang?.charAt(0).toUpperCase() + lang?.slice(1)} Levels
+            <span
+              className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-dark"
+              style={{ width: 28, height: 28, fontWeight: 600 }}
+            >
+              {userName?.charAt(0)?.toUpperCase() || 'U'}
+            </span>
+            <span className="fw-semibold" style={{ fontSize: '0.95rem' }}>
+              {userName}
+            </span>
           </Motion.button>
-          <div className="ms-auto">
-        <ProfileMenu />
+          {/* Right: Leaderboard, Back to Practice, Logout */}
+          <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto flex-wrap">
+            <Motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/leaderboard')}
+              className="btn btn-outline-info"
+              title="View Leaderboard"
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              🏆 Leaderboard
+            </Motion.button>
+            <Motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/practice')}
+              className="btn btn-outline-light"
+              title="Back to Practice"
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              ← Back to Practice
+            </Motion.button>
           </div>
-      </div>
+        </div>
       
         <ErrorBoundary>
           {renderContent() || (
@@ -441,10 +482,10 @@ export default function TheoryQuizPage() {
           )}
         </ErrorBoundary>
 
-      <div className="text-center mt-5">
-        <p className="text-muted">
-          Current Step: {step === 'theory' ? 'Theory Review' : step === 'quiz' ? 'Quiz Time' : 'Completed'}
-        </p>
+        <div className="text-center mt-5">
+          <p className="text-light">
+            Current Step: {step === 'theory' ? 'Theory Review' : step === 'quiz' ? 'Quiz Time' : 'Completed'}
+          </p>
         </div>
       </div>
     </div>

@@ -7,9 +7,9 @@ import { useApp } from '../hooks/useApp'
 import { useAuth } from '../state/useAuth'
 import { logout } from '../services/firebase'
 // ... rest of the component
-import ProfileMenu from '../components/ProfileMenu.jsx'
 import { motion } from 'framer-motion'
 import { quizApi } from '../utils/quiz/api'
+import PracticeHeader from '../components/PracticeHeader.jsx'
 // import '../styles/LanguageSelect.css' // Uncomment if you have this file
 
 // Styling metadata for known languages
@@ -85,57 +85,9 @@ export default function LanguageSelect() {
     }
   }, [])
   
-  const handleLogout = async () => {
-    try {
-      await logout()
-    } catch (e) {
-      console.error('Logout failed:', e)
-    }
-  }
-
   return (
     <div className="container-fluid min-vh-100 p-4 gradient-bg">
-      <div className="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-        <div className="d-flex align-items-center gap-3 flex-wrap">
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/practice')}
-            className="btn btn-outline-light"
-            title="Back to Practice"
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            ← Back to Practice
-          </motion.button>
-          <h2 className="text-light fw-bold mb-0" style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
-            Welcome, {userName}!
-          </h2>
-        </div>
-        
-        <div className="d-flex align-items-center gap-3 ms-auto flex-wrap">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/leaderboard')}
-            className="btn btn-outline-info"
-            title="View Leaderboard"
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            🏆 Leaderboard
-          </motion.button>
-          <ProfileMenu /> 
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleLogout}
-            className="btn btn-logout"
-            title="Logout"
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            🚪 Logout
-          </motion.button>
-        </div>
-      </div>
+      <PracticeHeader />
 
       <div className="container p-0">
         <motion.div

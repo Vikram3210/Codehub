@@ -14,6 +14,7 @@ import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Landing from './pages/Landing.jsx' 
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
+import ForgotPassword from './pages/ForgotPassword.jsx'
 // NEW IMPORT
 import TheoryQuizPage from './pages/TheoryQuizPage.jsx' 
 import Leaderboard from './pages/Leaderboard.jsx'
@@ -25,6 +26,7 @@ import QuizRoom from './pages/quiz/QuizRoom.jsx'
 import QuizLeaderboard from './pages/quiz/QuizLeaderboard.jsx'
 import QuizProfile from './pages/quiz/QuizProfile.jsx'
 import QuizSettings from './pages/quiz/QuizSettings.jsx'
+import Profile from './pages/Profile.jsx'
 
 
 function App() {
@@ -36,6 +38,7 @@ function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             
             <Route
               path="/home"
@@ -60,6 +63,10 @@ function App() {
             <Route
               path="/leaderboard"
               element={<ProtectedRoute><Leaderboard /></ProtectedRoute>}
+            />
+            <Route
+              path="/profile"
+              element={<ProtectedRoute><Profile /></ProtectedRoute>}
             />
 
             {/* NEW ROUTE FOR THEORY AND QUIZ */}

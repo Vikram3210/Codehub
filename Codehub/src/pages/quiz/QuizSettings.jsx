@@ -9,11 +9,6 @@ const QuizSettings = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [settings, setSettings] = useState({
-    notifications: true,
-    soundEffects: true,
-    theme: 'dark',
-    language: 'en',
-    autoStart: false,
     defaultTimeLimit: 20,
     defaultQuestions: 10,
     defaultDomain: 'Mixed'
@@ -31,9 +26,13 @@ const QuizSettings = () => {
     const username = currentUser?.displayName || currentUser?.email || 'Player';
     try {
       const data = await quizApi.get(`/settings/${encodeURIComponent(username)}`);
-      setSettings(prev => ({ ...prev, ...data }));
+      setSettings(prev => ({
+        ...prev,
+        defaultTimeLimit: Number(data.defaultTimeLimit || prev.defaultTimeLimit),
+        defaultQuestions: Number(data.defaultQuestions || prev.defaultQuestions),
+        defaultDomain: data.defaultDomain || prev.defaultDomain
+      }));
       setLoading(false);
-      applyTheme(data.theme || 'dark');
     } catch (err) {
       console.error('Error loading settings:', err);
       setLoading(false);
@@ -59,24 +58,10 @@ const QuizSettings = () => {
 
   const resetToDefaults = () => {
     setSettings({
-      notifications: true,
-      soundEffects: true,
-      theme: 'dark',
-      language: 'en',
-      autoStart: false,
       defaultTimeLimit: 20,
       defaultQuestions: 10,
       defaultDomain: 'Mixed'
     });
-  };
-
-  const applyTheme = (theme) => {
-    document.body.setAttribute('data-theme', theme);
-  };
-
-  const onThemeChange = () => {
-    applyTheme(settings.theme);
-    saveSettings();
   };
 
   const currentUsername = currentUser?.displayName || currentUser?.email || 'Player';
@@ -93,8 +78,8 @@ const QuizSettings = () => {
       <main>
         <div className="settings-container">
           <div className="settings-header">
-            <h1>⚙️ Settings</h1>
-            <p>Customize your quiz experience and preferences</p>
+            <h1>⚙️ Quiz Defaults</h1>
+            <p>Configure default time limit, question count, and domain for your rooms.</p>
           </div>
 
           {loading && (
@@ -111,94 +96,6 @@ const QuizSettings = () => {
                   {message}
                 </div>
               )}
-
-              <div className="settings-section">
-                <h2>🎮 General Settings</h2>
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h3>Notifications</h3>
-                    <p>Receive notifications for quiz updates and results</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={settings.notifications}
-                      onChange={(e) => setSettings(prev => ({ ...prev, notifications: e.target.checked }))}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h3>Sound Effects</h3>
-                    <p>Play sound effects during quiz gameplay</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={settings.soundEffects}
-                      onChange={(e) => setSettings(prev => ({ ...prev, soundEffects: e.target.checked }))}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h3>Auto Start</h3>
-                    <p>Automatically start quiz when all players join</p>
-                  </div>
-                  <label className="toggle-switch">
-                    <input
-                      type="checkbox"
-                      checked={settings.autoStart}
-                      onChange={(e) => setSettings(prev => ({ ...prev, autoStart: e.target.checked }))}
-                    />
-                    <span className="slider"></span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="settings-section">
-                <h2>🎨 Appearance</h2>
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h3>Theme</h3>
-                    <p>Choose your preferred color theme</p>
-                  </div>
-                  <select
-                    value={settings.theme}
-                    onChange={(e) => {
-                      setSettings(prev => ({ ...prev, theme: e.target.value }));
-                      onThemeChange();
-                    }}
-                    className="setting-select"
-                  >
-                    <option value="dark">Dark Theme</option>
-                    <option value="light">Light Theme</option>
-                    <option value="neon">Neon Theme</option>
-                  </select>
-                </div>
-
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <h3>Language</h3>
-                    <p>Select your preferred language</p>
-                  </div>
-                  <select
-                    value={settings.language}
-                    onChange={(e) => {
-                      setSettings(prev => ({ ...prev, language: e.target.value }));
-                      saveSettings();
-                    }}
-                    className="setting-select"
-                  >
-                    <option value="en">English</option>
-                    <option value="hi">हिन्दी (Hindi)</option>
-                  </select>
-                </div>
-              </div>
 
               <div className="settings-section">
                 <h2>🎯 Quiz Defaults</h2>

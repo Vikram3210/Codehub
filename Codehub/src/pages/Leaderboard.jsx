@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import ProfileMenu from '../components/ProfileMenu.jsx'
 import { useApp } from '../hooks/useApp'
 import { useAuth } from '../state/useAuth'
+import PracticeHeader from '../components/PracticeHeader.jsx'
 
 export default function Leaderboard() {
   const navigate = useNavigate()
@@ -81,33 +81,7 @@ export default function Leaderboard() {
   return (
     <div className="gradient-bg" style={{ minHeight: '100vh', padding: '2rem 0' }}>
       <div className="container py-5">
-        <div className="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/languages')}
-            className="btn btn-outline-light"
-            title="Back to Languages"
-            initial={{ x: -40, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            ← Back to Languages
-          </motion.button>
-
-          <motion.h1
-            className="neon-text display-5 fw-bold mb-0"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            Global Leaderboard
-          </motion.h1>
-
-          <div className="ms-auto">
-            <ProfileMenu />
-          </div>
-        </div>
+        <PracticeHeader />
 
         <motion.div
           className="card-glow mb-5 p-4"
@@ -118,7 +92,7 @@ export default function Leaderboard() {
           <div className="d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div>
               <h3 className="text-light mb-1">Hall of Fame</h3>
-              <p className="text-muted mb-0">
+              <p className="text-light-50 mb-0">
                 Track the top performers across every language. Earn more XP to climb the ranks!
               </p>
             </div>
@@ -126,7 +100,7 @@ export default function Leaderboard() {
               <p className="text-light mb-1 fw-semibold">
                 Total XP Recorded: <span className="text-info">{totalXPOnServer}</span>
               </p>
-              <p className="text-muted mb-0 small">
+              <p className="text-light-50 mb-0 small">
                 Showing {leaders.length} active {leaders.length === 1 ? 'player' : 'players'}
               </p>
             </div>
@@ -141,7 +115,7 @@ export default function Leaderboard() {
             animate={{ opacity: 1, y: 0 }}
           >
             <h4 className="text-light mb-3">No progress yet.</h4>
-            <p className="text-muted mb-4">
+              <p className="text-light-50 mb-4">
               Complete levels to start appearing on the leaderboard. Every XP point counts!
             </p>
             <button
@@ -206,9 +180,12 @@ export default function Leaderboard() {
                               <span className="badge bg-info text-dark ms-2">You</span>
                             )}
                           </h4>
-                          <p className="text-muted mb-0 small">
-                            Total XP: <span className="text-info fw-semibold">{entry.totalXP}</span>
-                          </p>
+                          <p className="mb-0 small" style={{ color: '#cbd5f5' }}>
+  Total XP:{' '}
+  <span style={{ color: '#4cc9f0', fontWeight: 700 }}>
+    {entry.totalXP}
+  </span>
+</p>
                         </div>
                       </div>
                       <div className="d-flex flex-wrap gap-2">

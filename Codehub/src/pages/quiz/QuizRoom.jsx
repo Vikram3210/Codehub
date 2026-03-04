@@ -294,6 +294,7 @@ const QuizRoom = () => {
           <div className="pre-room">
             <div className="create-panel">
               <h2>Forge Your Challenge!</h2>
+              <label>Room Name</label>
               <input
                 type="text"
                 value={challengeName}
@@ -378,7 +379,7 @@ const QuizRoom = () => {
             <header className="settings-bar">
               {settings.challengeName && (
                 <div className="challenge-title">
-                  <h2>🏆 {settings.challengeName}</h2>
+                  <h2>🏆 Team / Room Name: {settings.challengeName}</h2>
                 </div>
               )}
               <div className="summary">

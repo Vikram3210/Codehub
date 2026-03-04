@@ -7,12 +7,15 @@ import { useApp } from '../hooks/useApp'
 import ProfileMenu from '../components/ProfileMenu.jsx'
 import PrerequisiteTest from '../components/PrerequisiteTest'
 import { quizApi } from '../utils/quiz/api'
+import { useAuth } from '../state/useAuth'
+import { logout } from '../services/firebase'
 
 
 export default function Levels() {
   const { lang } = useParams()
   const navigate = useNavigate()
   const { state, dispatch } = useApp()
+  const { currentUser } = useAuth()
 
   const [levels, setLevels] = useState([])
   const [loadingLevels, setLoadingLevels] = useState(true)
@@ -20,6 +23,11 @@ export default function Levels() {
 
   // Debug logging
   console.log('Levels component - lang:', lang, 'state:', state)
+
+  const userName =
+    currentUser?.displayName ||
+    currentUser?.email?.split('@')[0] ||
+    'Coder'
 
   // Check if prerequisite test is completed
   const prerequisiteResult = state.prerequisiteTests?.[lang]
@@ -54,10 +62,20 @@ export default function Levels() {
 
         const normalized = data.map(lesson => {
           console.log('[Levels] Processing lesson:', lesson._id, lesson.title, 'levelNumber:', lesson.levelNumber)
+          const rawQuestions = Array.isArray(lesson.questions)
+            ? lesson.questions
+            : Array.isArray(lesson.mcqs)
+            ? lesson.mcqs
+            : []
+
+          const xp = typeof lesson.xp === 'number'
+            ? lesson.xp
+            : rawQuestions.length * 10
+
           return {
             id: lesson._id,
             title: lesson.title || lesson.lessonTitle || 'Untitled Level',
-            xp: typeof lesson.xp === 'number' ? lesson.xp : 0,
+            xp,
             difficulty: lesson.difficulty || 'intermediate',
             order: typeof lesson.order === 'number' ? lesson.order : lesson.levelNumber || 999,
             // Keep full lesson so we can reuse it in TheoryQuizPage
@@ -158,6 +176,13 @@ export default function Levels() {
     ? Math.min(100, Math.round((currentXP / totalXP) * 100))
     : 0
 
+  const langStats = state.languageStats?.[lang] || { totalQuestions: 0, correctQuestions: 0 }
+  const answeredQuestions = langStats.totalQuestions || 0
+  const correctQuestions = langStats.correctQuestions || 0
+  const accuracy = answeredQuestions > 0
+    ? Math.round((correctQuestions / answeredQuestions) * 100)
+    : 0
+
   // Navigate to the study route and pass full lesson via navigation state
   const startLevel = (level) => {
     navigate(`/study/${lang}/${level.id}`, {
@@ -211,44 +236,63 @@ export default function Levels() {
   return (
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-        <div className="d-flex align-items-center gap-3 flex-wrap">
-          <Motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/languages')}
-            className="btn btn-outline-light"
-            title="Back to Languages"
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            style={{ whiteSpace: 'nowrap' }}
+        {/* Left: profile pill, clickable to /profile */}
+        <Motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/profile')}
+          className="btn btn-outline-light d-flex align-items-center gap-2 px-3 py-2"
+          style={{ borderRadius: '999px' }}
+        >
+          <span
+            className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-dark"
+            style={{ width: 28, height: 28, fontWeight: 600 }}
           >
-            ← Back to Languages
-          </Motion.button>
-          <Motion.h1
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="neon-text display-4 fw-bold text-capitalize mb-0"
-            style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}
-          >
-            {lang} Levels
-          </Motion.h1>
-        </div>
-        <div className="d-flex align-items-center gap-3 ms-auto flex-wrap">
+            {userName?.charAt(0)?.toUpperCase() || 'U'}
+          </span>
+          <span className="fw-semibold" style={{ fontSize: '0.95rem' }}>
+            {userName}
+          </span>
+        </Motion.button>
+        {/* Right: Leaderboard, Back to Practice, Logout */}
+        <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto flex-wrap">
           <Motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/leaderboard')}
             className="btn btn-outline-info"
             title="View Leaderboard"
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.15 }}
             style={{ whiteSpace: 'nowrap' }}
           >
             🏆 Leaderboard
           </Motion.button>
-          <ProfileMenu />
+          <Motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/practice')}
+            className="btn btn-outline-light"
+            title="Back to Practice"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            ← Back to Practice
+          </Motion.button>
+          <Motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={async () => {
+              try {
+                await logout()
+                navigate('/login', { replace: true })
+              } catch (e) {
+                console.error('Logout failed:', e)
+              }
+            }}
+            className="btn btn-logout"
+            title="Logout"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            🚪 Logout
+          </Motion.button>
         </div>
       </div>
 
@@ -271,7 +315,10 @@ export default function Levels() {
                 {progress}%
               </div>
             </div>
-            <p className="text-muted">Total XP: {currentXP} / {totalXP}</p>
+            <p className="text-light mb-1">Total XP: {currentXP} / {totalXP}</p>
+            <p className="text-light small">
+              Accuracy: {answeredQuestions > 0 ? `${accuracy}% (${correctQuestions}/${answeredQuestions} correct)` : 'No quiz attempts yet'}
+            </p>
           </>
         )}
       </div>
@@ -290,10 +337,18 @@ export default function Levels() {
               <p className="text-warning mb-0">📚 You can access <strong>Easy</strong> levels. Finish every Easy level to unlock Intermediate. After Intermediate is complete, Advanced will unlock automatically, or score 16+ on the prerequisite test to skip ahead.</p>
             )}
             {easyLevels.length > 0 && (
-              <p className="text-muted small mt-2 mb-1">Easy Levels Completed: {completedEasyLevels.length}/{easyLevels.length}</p>
+              <p className="text-light small mt-2 mb-1">Easy Levels Completed: {completedEasyLevels.length}/{easyLevels.length}</p>
             )}
             {intermediateLevels.length > 0 && (
-              <p className="text-muted small mb-0">Intermediate Levels Completed: {completedIntermediateLevels.length}/{intermediateLevels.length}</p>
+              <p className="text-light small mb-1">Intermediate Levels Completed: {completedIntermediateLevels.length}/{intermediateLevels.length}</p>
+            )}
+            {levels.some(l => l.difficulty === 'advanced') && (
+              <p className="text-light small mb-0">
+                Advanced Levels Completed: {
+                  levels.filter(l => l.difficulty === 'advanced' && completed.has(l.id)).length
+                }/
+                {levels.filter(l => l.difficulty === 'advanced').length}
+              </p>
             )}
           </div>
         </div>

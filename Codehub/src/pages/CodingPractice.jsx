@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Editor from '@monaco-editor/react';
+import { useAuth } from '../state/useAuth';
+import { logout } from '../services/firebase';
 
 const DEFAULT_SNIPPETS = {
   javascript: `// JavaScript playground
@@ -40,10 +42,25 @@ const LANGUAGE_LABELS = {
 
 export default function CodingPractice() {
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
   const [language, setLanguage] = useState('javascript');
   const [code, setCode] = useState(DEFAULT_SNIPPETS.javascript);
   const [output, setOutput] = useState('// Output will appear here after running your code.\n');
   const [isRunning, setIsRunning] = useState(false);
+
+  const userName =
+    currentUser?.displayName ||
+    currentUser?.email?.split('@')[0] ||
+    'Coder';
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const handleLanguageChange = (event) => {
     const value = event.target.value;
@@ -101,24 +118,57 @@ export default function CodingPractice() {
   return (
     <div className="container-fluid min-vh-100 p-4 gradient-bg">
       <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-        <div className="d-flex align-items-center gap-3 flex-wrap">
+        {/* Left: profile pill, clickable to /profile */}
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/profile')}
+          className="btn btn-outline-light d-flex align-items-center gap-2 px-3 py-2"
+          style={{ borderRadius: '999px' }}
+        >
+          <span
+            className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-dark"
+            style={{ width: 28, height: 28, fontWeight: 600 }}
+          >
+            {userName?.charAt(0)?.toUpperCase() || 'U'}
+          </span>
+          <span className="fw-semibold" style={{ fontSize: '0.95rem' }}>
+            {userName}
+          </span>
+        </motion.button>
+
+        {/* Right: Leaderboard, Back to Practice, Logout */}
+        <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto flex-wrap">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/leaderboard')}
+            className="btn btn-outline-info"
+            title="View Leaderboard"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            🏆 Leaderboard
+          </motion.button>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => navigate('/practice')}
             className="btn btn-outline-light"
+            title="Back to Practice"
             style={{ whiteSpace: 'nowrap' }}
           >
-            ← Back to Practice Modes
+            ← Back to Practice
           </motion.button>
-          <motion.h1
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="neon-text mb-0"
-            style={{ fontSize: 'clamp(1.8rem, 3.2vw, 2.4rem)' }}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleLogout}
+            className="btn btn-logout"
+            title="Logout"
+            style={{ whiteSpace: 'nowrap' }}
           >
-            Coding Practice
-          </motion.h1>
+            🚪 Logout
+          </motion.button>
         </div>
       </div>
 

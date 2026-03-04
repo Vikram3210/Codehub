@@ -11,6 +11,9 @@ const initialState = {
   levelsByLanguage: {},
   // prerequisiteTests stores test results by language (e.g., { javascript: { score: 18, percentage: 90, unlockedDifficulty: 'advanced' } })
   prerequisiteTests: {},
+  // languageStats stores aggregate quiz stats per language (accuracy, questions, etc.)
+  // Example: { javascript: { totalQuestions: 40, correctQuestions: 32 } }
+  languageStats: {},
   profile: {
     name: '',
     avatarUrl: '',
@@ -119,6 +122,19 @@ function reducer(state, action) {
     
     case 'updateProfile':
       return { ...state, profile: { ...state.profile, ...action.payload } }
+    
+    case 'updateLanguageStats': {
+      const current = state.languageStats[action.lang] || { totalQuestions: 0, correctQuestions: 0 }
+      const totalQuestions = (current.totalQuestions || 0) + (action.totalQuestions || 0)
+      const correctQuestions = (current.correctQuestions || 0) + (action.correctQuestions || 0)
+      return {
+        ...state,
+        languageStats: {
+          ...state.languageStats,
+          [action.lang]: { totalQuestions, correctQuestions },
+        },
+      }
+    }
     
     case 'completePrerequisiteTest':
       const unlockedDifficulty = action.score > 15 ? 'advanced' : action.score > 13 ? 'intermediate' : 'easy'

@@ -212,7 +212,8 @@ export function registerQuizSocket(io, quizModels = {}) {
       const correct = answerIndex === q.correctIndex;
       const player = room.players.find((p) => p.username === username);
       if (player) {
-        const points = correct ? (room.timeLeft > 0 ? Math.max(5, room.timeLeft) : 5) : 0;
+        const remaining = typeof room.timeLeft === 'number' && room.timeLeft > 0 ? room.timeLeft : 0;
+        const points = correct ? 100 + remaining : 0;
         player.score = (player.score || 0) + points;
       }
 
@@ -222,12 +223,9 @@ export function registerQuizSocket(io, quizModels = {}) {
         players: room.players.map((p) => ({ username: p.username, score: p.score ?? 0 })),
       });
 
-      const totalPlayers = room.players.length;
-      const answered = Object.keys(room.currentAnswers).length;
-      if (answered >= totalPlayers) {
-        clearRoomTimer(room);
-        finishQuestion(io, room);
-      }
+      // Do NOT reveal the correct answer early.
+      // We intentionally let the per-question timer run until it hits 0,
+      // and only then finishQuestion() will emit the correct answer.
     });
 
     socket.on('chatMessage', (payload) => {

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../state/useAuth';
 import { quizApi } from '../../utils/quiz/api';
-import { updateProfile } from 'firebase/auth';
+import { updateProfile, reauthenticateWithCredential, EmailAuthProvider, updatePassword } from 'firebase/auth';
 import { auth } from '../../services/firebase';
 import './QuizProfile.css';
 
@@ -26,9 +26,63 @@ const QuizProfile = () => {
 
   const loadProfile = async () => {
     setLoading(true);
-    const username = currentUser?.displayName || currentUser?.email || 'Player';
     try {
-      const data = await quizApi.get(`/profile/${encodeURIComponent(username)}`);
+      const candidates = [
+        currentUser?.displayName,
+        currentUser?.email,
+        currentUser?.uid,
+      ]
+        .filter(Boolean)
+        .map((v) => String(v).trim())
+        .filter(Boolean);
+
+      let data = null;
+
+      for (const candidate of candidates) {
+        try {
+          const resp = await quizApi.get(`/profile/${encodeURIComponent(candidate)}`);
+          if (resp && typeof resp === 'object') {
+            data = resp;
+            // If this candidate actually matches stored scores, stop early.
+            if ((resp.gamesPlayed ?? 0) > 0 || (resp.totalScore ?? 0) > 0) {
+              break;
+            }
+          }
+        } catch (innerErr) {
+          // keep trying other candidates
+          console.warn('Profile lookup failed for', candidate, innerErr);
+        }
+      }
+
+      // Fallback: derive from leaderboard if profile lookup didn't match userId exactly.
+      if (!data || ((data.gamesPlayed ?? 0) === 0 && (data.totalScore ?? 0) === 0)) {
+        try {
+          const lb = await quizApi.get('/leaderboard');
+          const normalize = (s) =>
+            String(s || '')
+              .toLowerCase()
+              .replace(/\s+/g, ' ')
+              .trim();
+
+          const normalizedCandidates = new Set(candidates.map(normalize));
+          const found = Array.isArray(lb)
+            ? lb.find((row) => normalizedCandidates.has(normalize(row.username || row._id)))
+            : null;
+
+          if (found) {
+            data = {
+              username: found.username || found._id,
+              totalScore: found.totalScore ?? 0,
+              gamesPlayed: found.gamesPlayed ?? 0,
+              averageScore: found.averageScore ?? 0,
+              rank: found.rank ?? 0,
+            };
+          }
+        } catch (lbErr) {
+          console.warn('Leaderboard fallback failed:', lbErr);
+        }
+      }
+
       setProfile(data);
       setLoading(false);
     } catch (err) {
@@ -65,6 +119,7 @@ const QuizProfile = () => {
   };
 
   const getRankIcon = (rank) => {
+    if (!rank || rank <= 0) return 'N/A';
     if (rank <= 3) {
       switch (rank) {
         case 1: return '🥇';
@@ -76,6 +131,48 @@ const QuizProfile = () => {
   };
 
   const currentUsername = currentUser?.displayName || currentUser?.email || 'Player';
+
+  const isPasswordProvider = currentUser?.providerData?.some(
+    (p) => p.providerId === 'password'
+  );
+
+  const handleChangePassword = async (event) => {
+    event.preventDefault();
+    if (!isPasswordProvider) return;
+    const form = event.currentTarget;
+    const current = form.currentPassword.value;
+    const next = form.newPassword.value;
+    const confirm = form.confirmPassword.value;
+
+    if (!current || !next || !confirm) {
+      setMessage('Please fill all password fields.');
+      return;
+    }
+    if (next !== confirm) {
+      setMessage('New password and confirmation do not match.');
+      return;
+    }
+    if (next.length < 6) {
+      setMessage('New password should be at least 6 characters.');
+      return;
+    }
+
+    try {
+      if (!auth.currentUser || !auth.currentUser.email) {
+        setMessage('Unable to change password. Please re-login.');
+        return;
+      }
+      const cred = EmailAuthProvider.credential(auth.currentUser.email, current);
+      await reauthenticateWithCredential(auth.currentUser, cred);
+      await updatePassword(auth.currentUser, next);
+      form.reset();
+      setMessage('Password updated successfully!');
+      setTimeout(() => setMessage(''), 3000);
+    } catch (err) {
+      console.error('Error changing password:', err);
+      setMessage(err?.message || 'Failed to change password');
+    }
+  };
 
   return (
     <div className="profile-page">
@@ -134,7 +231,7 @@ const QuizProfile = () => {
                 <div className="stat-card">
                   <div className="stat-icon">{getRankIcon(profile.rank || 0)}</div>
                   <div className="stat-info">
-                    <h3>{profile.rank || 'N/A'}</h3>
+                    <h3>{profile.rank && profile.rank > 0 ? profile.rank : 'N/A'}</h3>
                     <p>Global Rank</p>
                   </div>
                 </div>
@@ -206,6 +303,45 @@ const QuizProfile = () => {
                       <span className="info-value">{profile.joinDate ? new Date(profile.joinDate).toLocaleDateString() : 'N/A'}</span>
                     </div>
                   </div>
+                </div>
+
+                <div className="setting-group">
+                  <div className="setting-header">
+                    <h3>Change Password</h3>
+                  </div>
+                  {!isPasswordProvider ? (
+                    <div className="setting-display">
+                      <span className="readonly-note">
+                        Password is managed by your Google account. Change it from your Google security settings.
+                      </span>
+                    </div>
+                  ) : (
+                    <form className="password-form" onSubmit={handleChangePassword}>
+                      <div className="password-row">
+                        <input
+                          type="password"
+                          name="currentPassword"
+                          placeholder="Current password"
+                          className="form-input"
+                        />
+                        <input
+                          type="password"
+                          name="newPassword"
+                          placeholder="New password"
+                          className="form-input"
+                        />
+                        <input
+                          type="password"
+                          name="confirmPassword"
+                          placeholder="Confirm password"
+                          className="form-input"
+                        />
+                      </div>
+                      <button type="submit" className="save-btn">
+                        Update Password
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             </div>
