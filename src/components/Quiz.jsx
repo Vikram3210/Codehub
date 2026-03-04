@@ -102,11 +102,11 @@ export default function Quiz({ questions, onComplete, maxXP, timeLimit }) {
           <h4 className="text-light">
             You scored {score} out of {questions.length}
           </h4>
-          <p className="text-muted">
+          <p className="text-light-50">
             That's {questions.length > 0 ? Math.round((score / questions.length) * 100) : 0}% correct!
           </p>
           {timeLimit && (
-            <p className="text-muted small">
+            <p className="text-light-50 small">
               Time limit: {Math.floor(timeLimit / 60)}m {String(timeLimit % 60).padStart(2, '0')}s
             </p>
           )}
@@ -159,7 +159,7 @@ export default function Quiz({ questions, onComplete, maxXP, timeLimit }) {
         </div>
       )}
       <div className="mb-3">
-        <span className="text-muted">
+        <span className="text-light-50">
           Question {currentQuestion + 1} of {questions.length}
         </span>
       </div>
@@ -235,7 +235,7 @@ function QuestionReview({ questions, selectedAnswers }) {
           {!isCorrect && (
             <div className="mb-2">
               <p className="text-danger fw-semibold mb-1">Why your answer is incorrect</p>
-              <p className="text-muted mb-0">{wrongExplanation}</p>
+              <p className="text-light-50 mb-0">{wrongExplanation}</p>
             </div>
           )}
 
@@ -243,7 +243,7 @@ function QuestionReview({ questions, selectedAnswers }) {
             <p className="text-info fw-semibold mb-1">
               {isCorrect ? 'Why this answer is correct' : 'Why the correct answer is right'}
             </p>
-            <p className="text-muted mb-0">{correctExplanation}</p>
+            <p className="text-light-50 mb-0">{correctExplanation}</p>
           </div>
         </div>
       ))}

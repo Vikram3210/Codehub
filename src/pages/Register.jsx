@@ -50,10 +50,22 @@ export default function Register() {
   
   return (
     <AuthContainer title="Register New Account" subtitle="Join the CodeHub community to level up your skills.">
-      {error && <div className="alert alert-danger mb-4 py-2" style={{ backgroundColor: '#ff333330', borderColor: '#ff3333' }}>{error}</div>}
+      {error && (
+        <div
+          className="alert alert-danger mb-4 py-2"
+          style={{
+            backgroundColor: '#7f1d1d',
+            borderColor: '#f87171',
+            color: '#ffffff',
+          }}
+        >
+          {error}
+        </div>
+      )}
       
       <form onSubmit={handleRegister}>
-        <div className="mb-3">
+        <div className="mb-3 text-start">
+          <label className="form-label text-light">Username</label>
           <input
             type="text"
             value={username}
@@ -64,7 +76,8 @@ export default function Register() {
           />
         </div>
 
-        <div className="mb-3">
+        <div className="mb-3 text-start">
+          <label className="form-label text-light">Email</label>
           <input
             type="email"
             value={email}
@@ -75,7 +88,8 @@ export default function Register() {
           />
         </div>
 
-        <div className="mb-3">
+        <div className="mb-3 text-start">
+          <label className="form-label text-light">Password</label>
           <input
             type="password"
             value={password}
@@ -86,7 +100,8 @@ export default function Register() {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 text-start">
+          <label className="form-label text-light">Confirm Password</label>
           <input
             type="password"
             value={confirmPassword}

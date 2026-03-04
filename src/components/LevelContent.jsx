@@ -60,15 +60,96 @@ export default function LevelContent({ title, content, onNext, nextButtonText = 
   const minutes = Math.floor(Math.max(0, remaining) / 60);
   const seconds = Math.max(0, remaining) % 60;
 
+  // Rough reading-time estimate for decorative meta info
+  const estimatedMinutes = useMemo(() => {
+    const words = String(safeContent || '')
+      .split(/\s+/)
+      .filter(Boolean).length;
+    if (!words) return 1;
+    return Math.max(1, Math.round(words / 160)); // ~160 wpm
+  }, [safeContent]);
+
+  // --- Simple content parser to create a rich, student‑friendly layout ---
+  const blocks = useMemo(() => {
+    const text = String(safeContent || '').trim();
+    if (!text) return [];
+
+    // Prefer splitting by double newlines; if none exist, fall back to single newlines
+    const rawBlocks = text.includes('\n\n') ? text.split(/\n{2,}/) : text.split(/\n+/);
+
+    return rawBlocks.map((raw, index) => {
+      const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+      const first = lines[0] || '';
+
+      // Definition / Important / Warning / Tip cards
+      if (/^definition[:\-]/i.test(first)) {
+        return { type: 'definition', id: `block-${index}`, body: lines.join(' ') };
+      }
+      if (/^(important|note)[:\-]/i.test(first)) {
+        return { type: 'important', id: `block-${index}`, body: lines.join(' ') };
+      }
+      if (/^(warning|caution)[:\-]/i.test(first)) {
+        return { type: 'warning', id: `block-${index}`, body: lines.join(' ') };
+      }
+      if (/^tip[:\-]/i.test(first)) {
+        return { type: 'tip', id: `block-${index}`, body: lines.join(' ') };
+      }
+
+      // Bullet list
+      if (lines.length > 1 && lines.every(l => /^[-*]\s+/.test(l))) {
+        return {
+          type: 'ul',
+          id: `block-${index}`,
+          items: lines.map(l => l.replace(/^[-*]\s+/, '')),
+        };
+      }
+
+      // Numbered list
+      if (lines.length > 1 && lines.every(l => /^\d+\.\s+/.test(l))) {
+        return {
+          type: 'ol',
+          id: `block-${index}`,
+          items: lines.map(l => l.replace(/^\d+\.\s+/, '')),
+        };
+      }
+
+      // Heading + paragraph (short first line, then body)
+      if (lines.length > 1 && first.length < 80) {
+        return {
+          type: 'section',
+          id: `block-${index}`,
+          heading: first,
+          body: lines.slice(1).join(' '),
+        };
+      }
+
+      // Plain paragraph
+      return { type: 'p', id: `block-${index}`, body: lines.join(' ') };
+    });
+  }, [safeContent]);
+
   return (
     <Motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
-      className="card-glow p-4 mx-auto"
-      style={{ maxWidth: '800px', backgroundColor: '#151a2d', borderRadius: '10px' }}
+      className="lesson-shell p-4 mx-auto"
+      style={{ maxWidth: '1000px' }}
     >
-      <h2 className="neon-text mb-4 text-center">{safeTitle}</h2>
+      <h1 className="neon-text mb-3 text-center lesson-title-heading">{safeTitle}</h1>
+      <div className="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 mb-4 lesson-title-sub">
+        <span className="badge rounded-pill bg-opacity-25 bg-info text-light lesson-tag">
+          Theory lesson
+        </span>
+        <span className="badge rounded-pill bg-opacity-25 bg-primary text-light lesson-tag">
+          ~{estimatedMinutes} min read
+        </span>
+        {hasTimer && (
+          <span className="badge rounded-pill bg-opacity-25 bg-warning text-dark lesson-tag">
+            Guided reading mode
+          </span>
+        )}
+      </div>
       
       {/* Large Timer Display */}
       {hasTimer && (
@@ -110,17 +191,93 @@ export default function LevelContent({ title, content, onNext, nextButtonText = 
         </Motion.div>
       )}
       
-      <div className="theory-content mb-4">
-        <div 
-          className="text-light"
-          style={{ 
-            lineHeight: '1.6', 
-            fontSize: '1.1rem',
-            whiteSpace: 'pre-line'
-          }}
-        >
-          {safeContent}
-        </div>
+      <div className="theory-content mb-4 lesson-content">
+        {blocks.length === 0 ? (
+          <p className="text-light lesson-paragraph">{safeContent}</p>
+        ) : (
+          blocks.map(block => {
+            if (block.type === 'definition') {
+              return (
+                <div key={block.id} className="lesson-card lesson-card-definition">
+                  <div className="lesson-card-icon">📘</div>
+                  <div>
+                    <h3 className="lesson-card-title">Definition</h3>
+                    <p className="lesson-paragraph">{block.body.replace(/^definition[:\-]\s*/i, '')}</p>
+                  </div>
+                </div>
+              );
+            }
+            if (block.type === 'important') {
+              return (
+                <div key={block.id} className="lesson-card lesson-card-important">
+                  <div className="lesson-card-icon">📌</div>
+                  <div>
+                    <h3 className="lesson-card-title">Important</h3>
+                    <p className="lesson-paragraph">{block.body.replace(/^(important|note)[:\-]\s*/i, '')}</p>
+                  </div>
+                </div>
+              );
+            }
+            if (block.type === 'warning') {
+              return (
+                <div key={block.id} className="lesson-card lesson-card-warning">
+                  <div className="lesson-card-icon">⚠</div>
+                  <div>
+                    <h3 className="lesson-card-title">Warning</h3>
+                    <p className="lesson-paragraph">{block.body.replace(/^(warning|caution)[:\-]\s*/i, '')}</p>
+                  </div>
+                </div>
+              );
+            }
+            if (block.type === 'tip') {
+              return (
+                <div key={block.id} className="lesson-card lesson-card-tip">
+                  <div className="lesson-card-icon">💡</div>
+                  <div>
+                    <h3 className="lesson-card-title">Tip</h3>
+                    <p className="lesson-paragraph">{block.body.replace(/^tip[:\-]\s*/i, '')}</p>
+                  </div>
+                </div>
+              );
+            }
+            if (block.type === 'ul') {
+              return (
+                <div key={block.id} className="lesson-list lesson-list-bullets">
+                  <ul>
+                    {block.items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            }
+            if (block.type === 'ol') {
+              return (
+                <div key={block.id} className="lesson-list lesson-list-steps">
+                  <ol>
+                    {block.items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </ol>
+                </div>
+              );
+            }
+            if (block.type === 'section') {
+              return (
+                <section key={block.id} className="lesson-section">
+                  <h2 className="lesson-heading">{block.heading}</h2>
+                  <p className="lesson-paragraph">{block.body}</p>
+                </section>
+              );
+            }
+            // Default paragraph
+            return (
+              <p key={block.id} className="lesson-paragraph">
+                {block.body}
+              </p>
+            );
+          })
+        )}
       </div>
       
       <div className="text-center">

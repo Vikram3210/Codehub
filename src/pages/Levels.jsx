@@ -1,63 +1,120 @@
 // src/pages/Levels.jsx (COMPLETE CODE)
 
-import { useMemo } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { useApp } from '../hooks/useApp'
 import ProfileMenu from '../components/ProfileMenu.jsx'
 import PrerequisiteTest from '../components/PrerequisiteTest'
-
-import { LEVEL_DATA } from '../data/levelData'
-
-// --- LEVEL DATA HELPER ---
-const getLevelsForLanguage = (lang) => {
-  if (LEVEL_DATA[lang]) {
-    return Object.entries(LEVEL_DATA[lang])
-      .map(([id, data]) => ({
-        id,
-        title: data.title,
-        xp: data.xp,
-        order: typeof data.order === 'number' ? data.order : 999,
-      }))
-      .sort((a, b) => a.order - b.order)
-  }
-  // Fallback if language not found
-  return [
-    { id: '1', title: 'Level 1: Basics', xp: 50 },
-    { id: '2', title: 'Level 2: Control Flow', xp: 75 },
-  ]
-}
-// -----------------------------
+import { quizApi } from '../utils/quiz/api'
+import { useAuth } from '../state/useAuth'
+import { logout } from '../services/firebase'
 
 
 export default function Levels() {
   const { lang } = useParams()
   const navigate = useNavigate()
   const { state, dispatch } = useApp()
+  const { currentUser } = useAuth()
+
+  const [levels, setLevels] = useState([])
+  const [loadingLevels, setLoadingLevels] = useState(true)
+  const [levelsError, setLevelsError] = useState(null)
 
   // Debug logging
   console.log('Levels component - lang:', lang, 'state:', state)
 
+  const userName =
+    currentUser?.displayName ||
+    currentUser?.email?.split('@')[0] ||
+    'Coder'
+
   // Check if prerequisite test is completed
   const prerequisiteResult = state.prerequisiteTests?.[lang]
-  const hasCompletedPrerequisite = prerequisiteResult?.completed || false
+  const hasCompletedPrerequisite = prerequisiteResult?.completed === true
   const unlockedDifficulty = prerequisiteResult?.unlockedDifficulty || 'easy'
 
-  console.log('Prerequisite check - hasCompleted:', hasCompletedPrerequisite, 'result:', prerequisiteResult)
+  // Load levels from backend (MongoDB) for this language
+  // ALWAYS fetch lessons regardless of prerequisite status
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchLevels = async () => {
+      try {
+        setLoadingLevels(true)
+        setLevelsError(null)
+
+        const apiUrl = `/lessons?languageKey=${lang}`
+        console.log('[Levels] Fetching lessons for languageKey:', lang)
+        const data = await quizApi.get(apiUrl)
+        console.log('[Levels] Raw API response:', data)
+        console.log('[Levels] Response type:', typeof data, 'Is array?', Array.isArray(data))
+        console.log('[Levels] Received lessons data:', data?.length || 0, 'lessons')
+
+        if (!isMounted) return
+
+        if (!Array.isArray(data)) {
+          console.warn('[Levels] API did not return an array:', data)
+          setLevels([])
+          setLevelsError('Invalid response format from server')
+          return
+        }
+
+        const normalized = data.map(lesson => {
+          console.log('[Levels] Processing lesson:', lesson._id, lesson.title, 'levelNumber:', lesson.levelNumber)
+          const rawQuestions = Array.isArray(lesson.questions)
+            ? lesson.questions
+            : Array.isArray(lesson.mcqs)
+            ? lesson.mcqs
+            : []
+
+          const xp = typeof lesson.xp === 'number'
+            ? lesson.xp
+            : rawQuestions.length * 10
+
+          return {
+            id: lesson._id,
+            title: lesson.title || lesson.lessonTitle || 'Untitled Level',
+            xp,
+            difficulty: lesson.difficulty || 'intermediate',
+            order: typeof lesson.order === 'number' ? lesson.order : lesson.levelNumber || 999,
+            // Keep full lesson so we can reuse it in TheoryQuizPage
+            _rawLesson: lesson,
+          }
+        })
+
+        console.log('[Levels] Normalized lessons:', normalized.length, normalized)
+        if (isMounted) {
+          setLevels(normalized)
+        }
+      } catch (error) {
+        console.error('[Levels] Error loading levels from API:', error)
+        console.error('[Levels] Error details:', error.message)
+        if (error.message) {
+          console.error('[Levels] Error message:', error.message)
+        }
+        if (isMounted) {
+          setLevelsError(`Failed to load levels: ${error.message || 'Unknown error'}`)
+          setLevels([])
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingLevels(false)
+        }
+      }
+    }
+
+    fetchLevels()
+
+    return () => {
+      isMounted = false
+    }
+  }, [lang, hasCompletedPrerequisite]) // Refetch when prerequisite status changes
+
+  console.log('[Levels] Prerequisite check - hasCompleted:', hasCompletedPrerequisite, 'result:', prerequisiteResult, 'lang:', lang)
 
   // Progress calculation - define completed first
   const completed = new Set(state.levelsByLanguage[lang] || [])
-
-  // Get dynamic levels based on the URL parameter
-  const levels = useMemo(() => {
-    const allLevels = getLevelsForLanguage(lang)
-    // Add difficulty and ensure order is included
-    return allLevels.map(l => ({
-      ...l,
-      difficulty: LEVEL_DATA[lang]?.[l.id]?.difficulty || 'intermediate',
-      order: LEVEL_DATA[lang]?.[l.id]?.order || l.order || 999
-    }))
-  }, [lang])
 
   const easyLevels = useMemo(() => levels.filter(l => l.difficulty === 'easy'), [levels])
   const intermediateLevels = useMemo(() => levels.filter(l => l.difficulty === 'intermediate'), [levels])
@@ -112,85 +169,158 @@ export default function Levels() {
     })
   }, [levels])
   
-  // Progress calculation
+  // Progress calculation (avoid NaN when totalXP is 0)
   const totalXP = levels.reduce((sum, l) => sum + l.xp, 0)
   const currentXP = state.xpByLanguage[lang] || 0
-  const progress = Math.min(100, Math.round((currentXP / totalXP) * 100))
+  const progress = totalXP > 0
+    ? Math.min(100, Math.round((currentXP / totalXP) * 100))
+    : 0
 
-  // Navigate to the study route
+  const langStats = state.languageStats?.[lang] || { totalQuestions: 0, correctQuestions: 0 }
+  const answeredQuestions = langStats.totalQuestions || 0
+  const correctQuestions = langStats.correctQuestions || 0
+  const accuracy = answeredQuestions > 0
+    ? Math.round((correctQuestions / answeredQuestions) * 100)
+    : 0
+
+  // Navigate to the study route and pass full lesson via navigation state
   const startLevel = (level) => {
-    navigate(`/study/${lang}/${level.id}`);
+    navigate(`/study/${lang}/${level.id}`, {
+      state: { lesson: level._rawLesson },
+    });
   };
 
   // Handle prerequisite test completion
   const handlePrerequisiteComplete = (score, percentage) => {
+    console.log('[Levels] Prerequisite completed - score:', score, 'percentage:', percentage, 'lang:', lang)
     dispatch({
       type: 'completePrerequisiteTest',
       lang: lang,
       score: score,
       percentage: percentage
     })
+    // Force a small delay to ensure state updates before re-render
+    setTimeout(() => {
+      console.log('[Levels] State after prerequisite completion:', state.prerequisiteTests?.[lang])
+    }, 100)
   }
 
-  // Show prerequisite test if not completed
-  if (!hasCompletedPrerequisite) {
+  // Show prerequisite test ONLY if not completed AND levels are loaded
+  // This ensures we don't block the UI while loading
+  if (!hasCompletedPrerequisite && !loadingLevels) {
     return (
       <PrerequisiteTest
         lang={lang}
-        levelData={LEVEL_DATA}
         onComplete={handlePrerequisiteComplete}
         onExit={() => navigate('/languages')}
       />
     )
   }
 
+  // Show loading state while fetching levels
+  if (loadingLevels) {
+    return (
+      <div className="container py-5">
+        <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+          <div className="text-center">
+            <div className="spinner-border text-info mb-3" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <p className="text-light">Loading levels...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="container py-5">
       <div className="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-        <div className="d-flex align-items-center gap-3 flex-wrap">
+        {/* Left: profile pill, clickable to /profile */}
+        <Motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/profile')}
+          className="btn btn-outline-light d-flex align-items-center gap-2 px-3 py-2"
+          style={{ borderRadius: '999px' }}
+        >
+          <span
+            className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-dark"
+            style={{ width: 28, height: 28, fontWeight: 600 }}
+          >
+            {userName?.charAt(0)?.toUpperCase() || 'U'}
+          </span>
+          <span className="fw-semibold" style={{ fontSize: '0.95rem' }}>
+            {userName}
+          </span>
+        </Motion.button>
+        {/* Right: Leaderboard, Back to Practice, Logout */}
+        <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto flex-wrap">
+          <Motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/leaderboard')}
+            className="btn btn-outline-info"
+            title="View Leaderboard"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            🏆 Leaderboard
+          </Motion.button>
           <Motion.button 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/languages')}
+            onClick={() => navigate('/practice')}
             className="btn btn-outline-light"
-            title="Back to Languages"
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
+            title="Back to Practice"
             style={{ whiteSpace: 'nowrap' }}
           >
-            ← Back to Languages
+            ← Back to Practice
           </Motion.button>
-          <Motion.h1
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            className="neon-text display-4 fw-bold text-capitalize mb-0"
-            style={{ fontSize: 'clamp(1.5rem, 4vw, 2.5rem)' }}
+          <Motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={async () => {
+              try {
+                await logout()
+                navigate('/login', { replace: true })
+              } catch (e) {
+                console.error('Logout failed:', e)
+              }
+            }}
+            className="btn btn-logout"
+            title="Logout"
+            style={{ whiteSpace: 'nowrap' }}
           >
-            {lang} Levels
-          </Motion.h1>
-        </div>
-        <div className="ms-auto">
-          <ProfileMenu />
+            🚪 Logout
+          </Motion.button>
         </div>
       </div>
 
       {/* Progress Bar */}
       <div className="mb-5 p-4 card-glow" style={{ backgroundColor: '#151a2d', borderRadius: '10px' }}>
         <h3 className="h5 text-light mb-2">Your Progress</h3>
-        <div className="progress mb-2" style={{ height: '15px', backgroundColor: '#333' }}>
-          <div
-            className="progress-bar bg-info"
-            role="progressbar"
-            style={{ width: `${progress}%` }}
-            aria-valuenow={progress}
-            aria-valuemin="0"
-            aria-valuemax="100"
-          >
-            {progress}%
-          </div>
-        </div>
-        <p className="text-muted">Total XP: {currentXP} / {totalXP}</p>
+        {loadingLevels ? (
+          <div className="text-light">Loading levels...</div>
+        ) : (
+          <>
+            <div className="progress mb-2" style={{ height: '15px', backgroundColor: '#333' }}>
+              <div
+                className="progress-bar bg-info"
+                role="progressbar"
+                style={{ width: `${progress}%` }}
+                aria-valuenow={progress}
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                {progress}%
+              </div>
+            </div>
+            <p className="text-light mb-1">Total XP: {currentXP} / {totalXP}</p>
+            <p className="text-light small">
+              Accuracy: {answeredQuestions > 0 ? `${accuracy}% (${correctQuestions}/${answeredQuestions} correct)` : 'No quiz attempts yet'}
+            </p>
+          </>
+        )}
       </div>
 
 
@@ -207,10 +337,18 @@ export default function Levels() {
               <p className="text-warning mb-0">📚 You can access <strong>Easy</strong> levels. Finish every Easy level to unlock Intermediate. After Intermediate is complete, Advanced will unlock automatically, or score 16+ on the prerequisite test to skip ahead.</p>
             )}
             {easyLevels.length > 0 && (
-              <p className="text-muted small mt-2 mb-1">Easy Levels Completed: {completedEasyLevels.length}/{easyLevels.length}</p>
+              <p className="text-light small mt-2 mb-1">Easy Levels Completed: {completedEasyLevels.length}/{easyLevels.length}</p>
             )}
             {intermediateLevels.length > 0 && (
-              <p className="text-muted small mb-0">Intermediate Levels Completed: {completedIntermediateLevels.length}/{intermediateLevels.length}</p>
+              <p className="text-light small mb-1">Intermediate Levels Completed: {completedIntermediateLevels.length}/{intermediateLevels.length}</p>
+            )}
+            {levels.some(l => l.difficulty === 'advanced') && (
+              <p className="text-light small mb-0">
+                Advanced Levels Completed: {
+                  levels.filter(l => l.difficulty === 'advanced' && completed.has(l.id)).length
+                }/
+                {levels.filter(l => l.difficulty === 'advanced').length}
+              </p>
             )}
           </div>
         </div>
@@ -219,6 +357,34 @@ export default function Levels() {
       {/* Level Cards - Show all levels with lock status */}
       <div className="levels-list">
         <div className="row g-4">
+          {levelsError && (
+            <div className="col-12">
+              <div className="alert alert-warning">{levelsError}</div>
+            </div>
+          )}
+          {!hasCompletedPrerequisite && (
+            <div className="col-12">
+              <div className="alert alert-info">
+                <strong>⚠️ Prerequisite Test Required:</strong> Complete the prerequisite test to unlock levels. 
+                <button 
+                  onClick={() => {
+                    // Re-trigger prerequisite test
+                    dispatch({ type: 'RESET_STATE', payload: { ...state, prerequisiteTests: { ...state.prerequisiteTests, [lang]: undefined } } })
+                  }}
+                  className="btn btn-sm btn-primary ms-2"
+                >
+                  Start Prerequisite Test
+                </button>
+              </div>
+            </div>
+          )}
+          {sortedLevels.length === 0 && !loadingLevels && (
+            <div className="col-12">
+              <div className="alert alert-warning text-center">
+                <p>No lessons found for {lang}. Please check if lessons exist in the database.</p>
+              </div>
+            </div>
+          )}
           {sortedLevels.map((lvl, i) => {
             const isDone = completed.has(lvl.id)
             const isLocked = !allowedDifficulties.has(lvl.difficulty)
@@ -248,13 +414,24 @@ export default function Levels() {
               }
             }
             
+            const buttonLabel = isLocked
+              ? '🔒 Locked'
+              : isDone
+                ? 'REVIEW LEVEL'
+                : 'START LEVEL'
+            const buttonVariant = isLocked
+              ? 'btn-secondary'
+              : isDone
+                ? 'btn-completed'
+                : 'btn-neon'
+
             return (
               <div key={lvl.id} className="col-12 col-md-6">
                 <Motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.4 }}
-                  className={`level-card card-glow p-4 ${isDone ? 'opacity-75' : ''} ${isLocked ? 'opacity-50' : ''}`}
+                  className={`level-card card-glow p-4 ${isLocked ? 'opacity-50' : ''}`}
                 >
                   <div className="d-flex justify-content-between align-items-start mb-3">
                     <div>
@@ -273,11 +450,11 @@ export default function Levels() {
 
                   <div className="text-end">
                     <button
-                      disabled={isDone || isLocked}
+                      disabled={isLocked}
                       onClick={() => startLevel(lvl)}
-                      className={`btn ${isDone ? 'btn-completed' : isLocked ? 'btn-secondary' : 'btn-neon'} px-4 py-2`}
+                      className={`btn ${buttonVariant} px-4 py-2`}
                     >
-                      {isDone ? 'Completed' : isLocked ? '🔒 Locked' : 'START LEVEL'}
+                      {buttonLabel}
                     </button>
                   </div>
                 </Motion.div>

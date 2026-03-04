@@ -1,0 +1,257 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import Editor from '@monaco-editor/react';
+import { useAuth } from '../state/useAuth';
+import { logout } from '../services/firebase';
+
+const DEFAULT_SNIPPETS = {
+  javascript: `// JavaScript playground
+function greet(name) {
+  return \`Hello, \${name} 👋\`;
+}
+
+console.log(greet('CodeHub'));`,
+  python: `# Python playground
+def greet(name: str) -> str:
+    return f"Hello, {name} 👋"
+
+print(greet("CodeHub"))`,
+  java: `// Java playground
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello, CodeHub 👋");
+    }
+}`,
+  cpp: `// C++ playground
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    cout << "Hello, CodeHub 👋" << endl;
+    return 0;
+}`,
+};
+
+const LANGUAGE_LABELS = {
+  javascript: 'JavaScript',
+  python: 'Python',
+  java: 'Java',
+  cpp: 'C++',
+};
+
+export default function CodingPractice() {
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const [language, setLanguage] = useState('javascript');
+  const [code, setCode] = useState(DEFAULT_SNIPPETS.javascript);
+  const [output, setOutput] = useState('// Output will appear here after running your code.\n');
+  const [isRunning, setIsRunning] = useState(false);
+
+  const userName =
+    currentUser?.displayName ||
+    currentUser?.email?.split('@')[0] ||
+    'Coder';
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const handleLanguageChange = (event) => {
+    const value = event.target.value;
+    setLanguage(value);
+    setCode(DEFAULT_SNIPPETS[value] || '');
+    if (value === 'javascript') {
+      setOutput(`// Switched to ${LANGUAGE_LABELS[value]}.\n// Ready to run code locally in the browser.\n`);
+    } else {
+      setOutput(
+        `// Switched to ${LANGUAGE_LABELS[value]}.\n` +
+        '// This editor supports writing code for this language.\n' +
+        '// To execute it, you would need a self-hosted Judge0 (or similar) backend.\n',
+      );
+    }
+  };
+
+  const handleRun = () => {
+    setIsRunning(true);
+
+    // Fully supported: JavaScript runs locally in the browser
+    if (language === 'javascript') {
+      try {
+        const logs = [];
+        const originalLog = console.log;
+        console.log = (...args) => {
+          logs.push(args.map(String).join(' '));
+          originalLog(...args);
+        };
+
+        setOutput('// Running JavaScript locally...\n');
+        // eslint-disable-next-line no-new-func
+        const fn = new Function(code);
+        fn();
+
+        console.log = originalLog;
+        setOutput((prev) => `${prev}${logs.length ? logs.join('\n') : '// (no output)'}\n`);
+      } catch (err) {
+        setOutput((prev) => `${prev}Error: ${err.message}\n`);
+      } finally {
+        setIsRunning(false);
+      }
+      return;
+    }
+
+    // For non-JS languages, we keep the editor + structure ready,
+    // but **do not** call an external paid API by default.
+    setOutput(
+      `// ${LANGUAGE_LABELS[language]} execution is not available in the free local setup.\n` +
+      '// You can still write and edit code here.\n' +
+      '// To execute this language, connect Coding Practice to a self-hosted Judge0 instance or another code runner API.\n',
+    );
+    setIsRunning(false);
+  };
+
+  return (
+    <div className="container-fluid min-vh-100 p-4 gradient-bg">
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        {/* Left: profile pill, clickable to /profile */}
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/profile')}
+          className="btn btn-outline-light d-flex align-items-center gap-2 px-3 py-2"
+          style={{ borderRadius: '999px' }}
+        >
+          <span
+            className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-dark"
+            style={{ width: 28, height: 28, fontWeight: 600 }}
+          >
+            {userName?.charAt(0)?.toUpperCase() || 'U'}
+          </span>
+          <span className="fw-semibold" style={{ fontSize: '0.95rem' }}>
+            {userName}
+          </span>
+        </motion.button>
+
+        {/* Right: Leaderboard, Back to Practice, Logout */}
+        <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto flex-wrap">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/leaderboard')}
+            className="btn btn-outline-info"
+            title="View Leaderboard"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            🏆 Leaderboard
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/practice')}
+            className="btn btn-outline-light"
+            title="Back to Practice"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            ← Back to Practice
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleLogout}
+            className="btn btn-logout"
+            title="Logout"
+            style={{ whiteSpace: 'nowrap' }}
+          >
+            🚪 Logout
+          </motion.button>
+        </div>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="mb-4 text-light-50"
+      >
+        <p className="mb-1">
+          Practice coding in a browser-based editor that feels like VS Code. Choose your language, write code,
+          and prepare for online judges or interviews.
+        </p>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.5 }}
+        className="coding-practice-shell p-3 p-md-4"
+      >
+        {/* Top toolbar */}
+        <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <span className="badge bg-primary bg-gradient coding-pill">VS Code Engine</span>
+            <span className="badge bg-secondary bg-gradient coding-pill">Monaco Editor</span>
+          </div>
+          <div className="d-flex align-items-center gap-2 flex-wrap">
+            <label className="text-light-50 me-2 mb-0" htmlFor="language-select">
+              Language
+            </label>
+            <select
+              id="language-select"
+              className="form-select form-select-sm coding-select"
+              value={language}
+              onChange={handleLanguageChange}
+            >
+              <option value="cpp">C++</option>
+              <option value="java">Java</option>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+            </select>
+            <button
+              type="button"
+              className="btn btn-sm btn-primary coding-run-btn"
+              onClick={handleRun}
+              disabled={isRunning}
+            >
+              {isRunning ? 'Running…' : 'Run Code'}
+            </button>
+          </div>
+        </div>
+
+        {/* Editor */}
+        <div className="coding-editor-wrapper mb-3">
+          <Editor
+            height="52vh"
+            theme="vs-dark"
+            defaultLanguage={language === 'cpp' ? 'cpp' : language}
+            language={language === 'cpp' ? 'cpp' : language}
+            value={code}
+            onChange={(value) => setCode(value ?? '')}
+            options={{
+              fontSize: 14,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              automaticLayout: true,
+              roundedSelection: false,
+              autoIndent: 'full',
+            }}
+          />
+        </div>
+
+        {/* Output console */}
+        <div className="coding-console">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="text-light-50 small">Output Console</span>
+            <span className="badge bg-dark bg-opacity-75 coding-pill">Execution Preview</span>
+          </div>
+          <pre className="coding-console-body mb-0">{output}</pre>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+

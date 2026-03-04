@@ -1,27 +1,39 @@
 // src/pages/LanguageSelect.jsx
 // src/pages/LanguageSelect.jsx
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../hooks/useApp'
 // CRITICAL FIX: Change this line:
 import { useAuth } from '../state/useAuth'
 import { logout } from '../services/firebase'
 // ... rest of the component
-import ProfileMenu from '../components/ProfileMenu.jsx'
 import { motion } from 'framer-motion'
+import { quizApi } from '../utils/quiz/api'
+import PracticeHeader from '../components/PracticeHeader.jsx'
 // import '../styles/LanguageSelect.css' // Uncomment if you have this file
 
-// ... rest of the component code (same as previous response)
-const LANGS = [
-  { key: 'javascript', label: 'JavaScript', gradient: 'linear-gradient(135deg, #ffd23f 0%, #ff6b35 100%)' },
-  { key: 'python', label: 'Python', gradient: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)' },
-  { key: 'java', label: 'Java', gradient: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)' },
-  { key: 'cpp', label: 'C++', gradient: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)' },
+// Styling metadata for known languages
+const LANGUAGE_STYLES = {
+  javascript: { gradient: 'linear-gradient(135deg, #ffd23f 0%, #ff6b35 100%)' },
+  python: { gradient: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%)' },
+  java: { gradient: 'linear-gradient(135deg, #f97316 0%, #dc2626 100%)' },
+  cpp: { gradient: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)' },
+}
+
+const FALLBACK_LANGS = [
+  { key: 'javascript', name: 'JavaScript' },
+  { key: 'python', name: 'Python' },
+  { key: 'java', name: 'Java' },
+  { key: 'cpp', name: 'C++' },
 ]
 
 export default function LanguageSelect() {
   const navigate = useNavigate()
   const { dispatch } = useApp()
   const { currentUser } = useAuth() 
+  const [languages, setLanguages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
 
   const userName =
     currentUser?.displayName ||
@@ -32,48 +44,50 @@ export default function LanguageSelect() {
     dispatch({ type: 'selectLanguage', lang: key })
     navigate(`/levels/${key}`)
   }
-  
-  const handleLogout = async () => {
-    try {
-      await logout()
-    } catch (e) {
-      console.error('Logout failed:', e)
-    }
-  }
 
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchLanguages = async () => {
+      try {
+        setLoading(true)
+        setLoadError(null)
+
+        const data = await quizApi.get('/languages')
+
+        if (!isMounted) return
+
+        if (Array.isArray(data) && data.length > 0) {
+          setLanguages(data.map(l => ({
+            key: l.key,
+            name: l.name,
+          })))
+        } else {
+          setLanguages(FALLBACK_LANGS)
+        }
+      } catch (error) {
+        console.error('Error loading languages from API:', error)
+        if (isMounted) {
+          setLoadError('Failed to load languages from server. Using defaults.')
+          setLanguages(FALLBACK_LANGS)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchLanguages()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+  
   return (
     <div className="container-fluid min-vh-100 p-4 gradient-bg">
-      <div className="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
-        <div className="d-flex align-items-center gap-3 flex-wrap">
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/')}
-            className="btn btn-outline-light"
-            title="Back to Home"
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            ← Back to Home
-          </motion.button>
-          <h2 className="text-light fw-bold mb-0" style={{ fontSize: 'clamp(1.2rem, 3vw, 1.5rem)' }}>
-            Welcome, {userName}!
-          </h2>
-        </div>
-        
-        <div className="d-flex align-items-center gap-3 ms-auto">
-          <ProfileMenu /> 
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleLogout}
-            className="btn btn-logout"
-            title="Logout"
-            style={{ whiteSpace: 'nowrap' }}
-          >
-            🚪 Logout
-          </motion.button>
-        </div>
-      </div>
+      <PracticeHeader />
 
       <div className="container p-0">
         <motion.div
@@ -89,7 +103,19 @@ export default function LanguageSelect() {
         </motion.div>
 
         <div className="row g-4 g-lg-5 justify-content-center">
-          {LANGS.map((lang, i) => (
+          {loading && (
+            <div className="col-12 text-center text-light mb-3">
+              Loading languages...
+            </div>
+          )}
+          {loadError && !loading && (
+            <div className="col-12 text-center text-warning mb-3">
+              {loadError}
+            </div>
+          )}
+          {languages.map((lang, i) => {
+            const style = LANGUAGE_STYLES[lang.key] || { gradient: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)' }
+            return (
             <div key={lang.key} className="col-12 col-sm-6 col-lg-3">
               <motion.button
                 whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(0, 234, 255, 0.5)' }}
@@ -101,16 +127,16 @@ export default function LanguageSelect() {
                 className="btn w-100 language-card card-glow p-4 text-white d-flex flex-column align-items-center justify-content-center"
                 style={{ 
                     height: '180px', 
-                    background: lang.gradient,
+                    background: style.gradient,
                     border: 'none',
                     transition: 'all 0.3s',
                 }}
               >
                 <i className={`fs-1 mb-2 ${lang.icon || 'bi bi-code-slash'}`}></i> 
-                <h3 className="h5 fw-bold mb-0">{lang.label}</h3>
+                <h3 className="h5 fw-bold mb-0">{lang.name}</h3>
               </motion.button>
             </div>
-          ))}
+          )})}
         </div>
       </div>
     </div>

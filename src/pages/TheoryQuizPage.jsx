@@ -1,7 +1,7 @@
 // src/pages/TheoryQuizPage.jsx (CORRECTED IMPORTS)
 
 import React, { useState, useEffect } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion as Motion } from 'framer-motion'
 import { useApp } from '../hooks/useApp' 
 import { useAuth } from '../state/useAuth.js' 
@@ -9,29 +9,164 @@ import ProfileMenu from '../components/ProfileMenu.jsx'
 import LevelContent from '../components/LevelContent'
 import Quiz from '../components/Quiz'
 import ErrorBoundary from '../components/ErrorBoundary'
-import { getLevelData } from '../data/levelData'
+import { quizApi } from '../utils/quiz/api'
 import '../styles/TheoryQuizPage.css'
 
 
 export default function TheoryQuizPage() {
   const { lang, levelId } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
   const { dispatch, state } = useApp()
+  const { currentUser } = useAuth()
 
   const [step, setStep] = useState('theory') // 'theory' or 'quiz'
   const [quizScore, setQuizScore] = useState(0)
   const [quizMaxScore, setQuizMaxScore] = useState(0)
-
-  // Get level data safely
-  let levelData = null
-  try {
-    levelData = getLevelData(lang, levelId)
-  } catch (error) {
-    console.error('Error getting level data:', error)
-  }
+  const [levelData, setLevelData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   
+  // Possibly pre-loaded lesson when navigating from Levels
+  const initialLesson = location.state?.lesson || null
+
+  const userName =
+    currentUser?.displayName ||
+    currentUser?.email?.split('@')[0] ||
+    'Coder'
+
+  // Helper: build normalized level data from a lesson document
+  const buildLevelDataFromLesson = (lesson) => {
+    if (!lesson) return null
+
+    const rawQuestions = Array.isArray(lesson.questions)
+      ? lesson.questions
+      : Array.isArray(lesson.mcqs)
+      ? lesson.mcqs
+      : []
+
+    return {
+      title: lesson.title || lesson.lessonTitle || 'Level Content',
+      theory: lesson.theory || lesson.description || 'Content coming soon.',
+      xp: typeof lesson.xp === 'number' ? lesson.xp : rawQuestions.length * 10,
+      quiz: rawQuestions.map(q => ({
+        question: q.question,
+        options: q.options,
+        // Match Quiz component: answer is the correct option VALUE
+        answer: typeof q.answer === 'number'
+          ? q.options?.[q.answer]
+          : q.correctAnswer ?? q.answer,
+      })),
+      timeLimit: lesson.timeLimit,
+    }
+  }
+
+  // Initialize levelData from navigation state if available
+  useEffect(() => {
+    if (initialLesson && !levelData) {
+      const normalized = buildLevelDataFromLesson(initialLesson)
+      console.log('[TheoryQuizPage] Using lesson from navigation state:', normalized)
+      setLevelData(normalized)
+      setLoading(false)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLesson])
+
   // Get current total XP for this language
   const currentTotalXP = state?.xpByLanguage?.[lang] || 0
+
+  // Load lesson (+ embedded quiz questions) from backend (MongoDB)
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchLessonAndQuiz = async () => {
+      try {
+        setLoading(true)
+        setLoadError(null)
+
+        // If we already have a lesson from navigation state, skip API fetch
+        if (initialLesson) {
+          console.log('[TheoryQuizPage] Skipping fetch - using initialLesson from navigation state')
+          return
+        }
+
+        console.log('[TheoryQuizPage] Fetching lesson (with embedded questions) for levelId:', levelId, 'lang:', lang)
+
+        const lessonRes = await quizApi.get(`/lessons/${levelId}`).catch(err => {
+          console.error('[TheoryQuizPage] Error fetching lesson:', err)
+          return null
+        })
+
+        if (!isMounted) return
+
+        console.log('[TheoryQuizPage] Lesson response:', lessonRes)
+
+        const lesson = lessonRes || {}
+
+        if (!lesson || !lesson._id) {
+          console.error('[TheoryQuizPage] Lesson not found or invalid:', lesson)
+          if (isMounted) {
+            setLoadError(`Lesson not found. Please check if the lesson exists in the database.`)
+            setLevelData(null)
+          }
+          return
+        }
+
+        // Use embedded questions array from the lesson document
+        const rawQuestions = Array.isArray(lesson.questions)
+          ? lesson.questions
+          : Array.isArray(lesson.mcqs)
+          ? lesson.mcqs
+          : []
+
+        console.log('[TheoryQuizPage] Raw embedded questions count:', rawQuestions.length)
+
+        const normalizedLevel = {
+          title: lesson.title || lesson.lessonTitle || 'Level Content',
+          theory: lesson.theory || lesson.description || 'Content coming soon.',
+          xp: typeof lesson.xp === 'number' ? lesson.xp : rawQuestions.length * 10,
+          quiz: rawQuestions.map(q => ({
+            question: q.question,
+            options: q.options,
+            // Quiz component expects `answer` to equal the correct option value.
+            // We support both `correctAnswer` (string) and `answer` (string) fields.
+            answer: q.correctAnswer ?? q.answer,
+          })),
+          timeLimit: lesson.timeLimit,
+        }
+
+        console.log('[TheoryQuizPage] Normalized level data:', normalizedLevel)
+        console.log('[TheoryQuizPage] Theory length:', normalizedLevel.theory?.length || 0)
+        console.log('[TheoryQuizPage] Quiz questions count:', normalizedLevel.quiz.length)
+
+        if (isMounted) {
+          setLevelData(normalizedLevel)
+        }
+      } catch (error) {
+        console.error('[TheoryQuizPage] Error loading lesson/quiz data from API:', error)
+        console.error('[TheoryQuizPage] Error details:', error.message, error.stack)
+        if (isMounted) {
+          setLoadError(`Failed to load lesson content: ${error.message || 'Unknown error'}`)
+          setLevelData(null)
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    if (lang && levelId) {
+      fetchLessonAndQuiz()
+    } else {
+      setLoading(false)
+      setLevelData(null)
+    }
+
+    return () => {
+      isMounted = false
+    }
+  }, [lang, levelId])
 
   // Debug logging
   useEffect(() => {
@@ -43,8 +178,30 @@ export default function TheoryQuizPage() {
     console.log('step:', step)
   }, [lang, levelId, levelData, state, step])
 
-  // Handle case when level data is not found (check if title is "Level Not Found")
-  if (!levelData || levelData.title === 'Level Not Found') {
+  // Set max possible XP once level data (and quiz) are loaded
+  useEffect(() => {
+    if (levelData && levelData.xp && Array.isArray(levelData.quiz) && levelData.quiz.length > 0) {
+      setQuizMaxScore(levelData.xp)
+    }
+  }, [levelData])
+
+  // Loading and not-found states
+  if (loading) {
+    return (
+      <div className="gradient-bg" style={{ minHeight: '100vh', padding: '2rem 0' }}>
+        <div className="container py-5 d-flex justify-content-center align-items-center">
+          <div className="card-glow p-5 text-center" style={{ maxWidth: '600px', backgroundColor: '#151a2d', borderRadius: '10px' }}>
+            <h2 className="neon-text mb-4">Loading Level...</h2>
+            <div className="spinner-border text-info" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!levelData) {
     return (
       <div className="gradient-bg" style={{ minHeight: '100vh', padding: '2rem 0' }}>
         <div className="container py-5">
@@ -65,12 +222,9 @@ export default function TheoryQuizPage() {
             <p className="text-light mb-3">
               The level <strong>"{levelId || 'unknown'}"</strong> for <strong>{lang || 'unknown'}</strong> could not be found.
             </p>
-            <div className="text-muted mb-4 small text-start" style={{ backgroundColor: '#1a1f3a', padding: '1rem', borderRadius: '8px' }}>
-              <strong>Debug Info:</strong><br/>
-              Language: {lang || 'undefined'}<br/>
-              Level ID: {levelId || 'undefined'}<br/>
-              Available languages: javascript, python, java, cpp
-            </div>
+            {loadError && (
+              <p className="text-warning mb-3">{loadError}</p>
+            )}
             <button
               onClick={() => navigate(`/levels/${lang || 'javascript'}`)}
               className="btn btn-neon px-4 py-3"
@@ -83,13 +237,6 @@ export default function TheoryQuizPage() {
     )
   }
 
-  useEffect(() => {
-    // Set the max score when data loads
-    if (levelData && levelData.xp && Array.isArray(levelData.quiz) && levelData.quiz.length > 0) {
-        setQuizMaxScore(levelData.xp)
-    }
-  }, [levelData])
-
   const handleQuizComplete = (score) => {
     // Calculate XP earned safely (avoid divide-by-zero)
     const totalQuestions = Array.isArray(levelData.quiz) ? levelData.quiz.length : 0
@@ -100,11 +247,21 @@ export default function TheoryQuizPage() {
 
     // Dispatch the action to complete the level and add XP
     dispatch({ 
-        type: 'completeLevel', 
-        lang: lang, 
-        levelId: levelId, 
-        xp: xpEarned // Pass the dynamic XP score
+      type: 'completeLevel', 
+      lang: lang, 
+      levelId: levelId, 
+      xp: xpEarned
     })
+
+    // Update aggregate language accuracy stats for progress tracking
+    if (totalQuestions > 0) {
+      dispatch({
+        type: 'updateLanguageStats',
+        lang: lang,
+        totalQuestions,
+        correctQuestions: score,
+      })
+    }
 
     setStep('complete')
   }
@@ -268,25 +425,50 @@ export default function TheoryQuizPage() {
 
   return (
     <div className="gradient-bg" style={{ minHeight: '100vh', padding: '2rem 0' }}>
-    <div className="container py-5">
+      <div className="container py-5">
         <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-          <Motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(`/levels/${lang}`)}
-            className="btn btn-outline-light"
-            title="Back to Levels"
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            style={{ whiteSpace: 'nowrap' }}
+          {/* Left: profile pill, clickable to /profile */}
+          <Motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate('/profile')}
+            className="btn btn-outline-light d-flex align-items-center gap-2 px-3 py-2"
+            style={{ borderRadius: '999px' }}
           >
-            ← Back to {lang?.charAt(0).toUpperCase() + lang?.slice(1)} Levels
+            <span
+              className="d-inline-flex align-items-center justify-content-center rounded-circle bg-light text-dark"
+              style={{ width: 28, height: 28, fontWeight: 600 }}
+            >
+              {userName?.charAt(0)?.toUpperCase() || 'U'}
+            </span>
+            <span className="fw-semibold" style={{ fontSize: '0.95rem' }}>
+              {userName}
+            </span>
           </Motion.button>
-          <div className="ms-auto">
-        <ProfileMenu />
+          {/* Right: Leaderboard, Back to Practice, Logout */}
+          <div className="d-flex align-items-center gap-2 gap-md-3 ms-auto flex-wrap">
+            <Motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/leaderboard')}
+              className="btn btn-outline-info"
+              title="View Leaderboard"
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              🏆 Leaderboard
+            </Motion.button>
+            <Motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/practice')}
+              className="btn btn-outline-light"
+              title="Back to Practice"
+              style={{ whiteSpace: 'nowrap' }}
+            >
+              ← Back to Practice
+            </Motion.button>
           </div>
-      </div>
+        </div>
       
         <ErrorBoundary>
           {renderContent() || (
@@ -300,10 +482,10 @@ export default function TheoryQuizPage() {
           )}
         </ErrorBoundary>
 
-      <div className="text-center mt-5">
-        <p className="text-muted">
-          Current Step: {step === 'theory' ? 'Theory Review' : step === 'quiz' ? 'Quiz Time' : 'Completed'}
-        </p>
+        <div className="text-center mt-5">
+          <p className="text-light">
+            Current Step: {step === 'theory' ? 'Theory Review' : step === 'quiz' ? 'Quiz Time' : 'Completed'}
+          </p>
         </div>
       </div>
     </div>

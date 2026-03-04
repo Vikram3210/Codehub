@@ -17,9 +17,9 @@ export default function Login() {
 
   // 1. useEffect: This handles redirection AFTER authentication is complete
   useEffect(() => {
-    // If NOT loading and we have a user, navigate away
+    // If NOT loading and we have a user, navigate to practice page
     if (!loading && currentUser) { 
-      navigate('/home', { replace: true });
+      navigate('/practice', { replace: true });
     }
     // Note: Do NOT add 'loading' to the dependency array if it causes a loop, 
     // but typically it is required. Keep it for now.
@@ -61,11 +61,23 @@ export default function Login() {
   return (
     <AuthContainer title="Sign In" subtitle="Welcome back to the hub.">
       {/* ... (rest of the Login JSX) */}
-      {error && <div className="alert alert-danger mb-4 py-2" style={{ backgroundColor: '#ff333330', borderColor: '#ff3333' }}>{error}</div>}
+      {error && (
+        <div
+          className="alert alert-danger mb-4 py-2"
+          style={{
+            backgroundColor: '#7f1d1d',
+            borderColor: '#f87171',
+            color: '#ffffff',
+          }}
+        >
+          {error}
+        </div>
+      )}
       
       <form onSubmit={handleLogin} className="mb-4">
         {/* ... (email and password inputs) */}
-        <div className="mb-3">
+        <div className="mb-3 text-start">
+          <label className="form-label text-light">Email</label>
           <input
             type="email"
             value={email}
@@ -76,7 +88,8 @@ export default function Login() {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-3 text-start">
+          <label className="form-label text-light">Password</label>
           <input
             type="password"
             value={password}
@@ -85,6 +98,16 @@ export default function Login() {
             placeholder="Password"
             required
           />
+        </div>
+
+        <div className="mb-3 text-end">
+          <Link
+            to="/forgot-password"
+            className="text-decoration-underline"
+            style={{ color: 'var(--color-highlight)', fontSize: '0.9rem' }}
+          >
+            Forgot Password?
+          </Link>
         </div>
 
         <button
