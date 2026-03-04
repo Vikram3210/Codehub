@@ -223,18 +223,13 @@ export function registerQuizSocket(io, quizModels = {}) {
         players: room.players.map((p) => ({ username: p.username, score: p.score ?? 0 })),
       });
 
-<<<<<<< HEAD
-      // Do NOT reveal the correct answer early.
-      // We intentionally let the per-question timer run until it hits 0,
-      // and only then finishQuestion() will emit the correct answer.
-=======
+
       const totalPlayers = room.players.length;
       const answered = Object.keys(room.currentAnswers).length;
       if (answered >= totalPlayers) {
         clearRoomTimer(room);
         finishQuestion(io, room, QuizScore);
       }
->>>>>>> b7fd677 (404 error fix on refreshing)
     });
 
     socket.on('chatMessage', (payload) => {
