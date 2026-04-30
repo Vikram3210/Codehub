@@ -146,7 +146,7 @@ export default function PracticeOptions() {
                 justifyContent: 'center',
                 alignItems: 'center'
               }}
-              onClick={() => navigate('/coding-practice')}
+              onClick={() => navigate('/problems')}
             >
               <div className="mb-4" style={{ fontSize: '4rem' }}>🧑‍💻</div>
               <h2 className="h3 fw-bold mb-3">Coding Practice</h2>

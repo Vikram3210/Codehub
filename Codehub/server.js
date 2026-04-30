@@ -10,6 +10,7 @@ import lessonRoutes from './server/routes/lessonRoutes.js';
 import questionRoutes from './server/routes/questionRoutes.js';
 import prerequisiteRoutes from './server/routes/prerequisiteRoutes.js';
 import codeExecutionRoutes from './server/routes/codeExecutionRoutes.js';
+import codingRoutes from './server/routes/codingRoutes.js';
 import UserSettings from './server/models/UserSettings.js';
 import QuizScore from './server/models/QuizScore.js';
 import Question from './server/models/Question.js';
@@ -151,6 +152,7 @@ app.use('/api/lessons', lessonRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/prerequisites', prerequisiteRoutes);
 app.use('/api', codeExecutionRoutes);
+app.use('/api', codingRoutes);
 
 /* ==============================
    ✅ QUIZ LEADERBOARD (from QUIZ DB)
