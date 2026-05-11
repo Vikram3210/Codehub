@@ -40,6 +40,7 @@ const QuizRoom = () => {
   const [waitingForOthers, setWaitingForOthers] = useState(false);
   const [currentAnswers, setCurrentAnswers] = useState({});
   const [showFinalResults, setShowFinalResults] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
 
   useEffect(() => {
     const u = currentUser;
@@ -115,6 +116,9 @@ const QuizRoom = () => {
       if (room.maxPlayers) {
         setSettings((prev) => ({ ...prev, maxPlayers: room.maxPlayers }));
       }
+      if (room.settings?.difficulty) {
+        setSelectedDifficulty(room.settings.difficulty);
+      }
       setGeneratedCode(room.roomCode || generatedCode);
       sortPlayersByScore(room.players || []);
     });
@@ -125,6 +129,7 @@ const QuizRoom = () => {
       setCurrentQuestionIndex(data.currentQuestionIndex || 0);
       setCurrentQuestion(data.currentQuestion);
       setCurrentOptions(data.currentOptions || []);
+      setCurrentAnswers({});
       setHasAnswered(false);
       setWaitingForOthers(false);
       setTimeLeftSeconds(data.timeLimit || 20);
@@ -184,12 +189,17 @@ const QuizRoom = () => {
   };
 
   const createRoom = () => {
+    if (!selectedDifficulty) {
+      alert('Please select a difficulty level before creating a room');
+      return;
+    }
     const roomSettings = {
       challengeName,
       domain,
       maxPlayers: Number(squadSize || 10),
       numQuestions: Number(numQuestions || 10),
-      timeLimit: Number(timeLimit || 20)
+      timeLimit: Number(timeLimit || 20),
+      difficulty: selectedDifficulty
     };
     setSettings(roomSettings);
     if (!socketRef.current) return alert('Socket not connected');
@@ -220,7 +230,11 @@ const QuizRoom = () => {
   const startQuiz = () => {
     if (!isOwner || !generatedCode) return;
     if (!socketRef.current) return alert('Socket not connected');
-    socketRef.current.emit('startQuiz', { roomCode: generatedCode, username });
+    socketRef.current.emit('startQuiz', { 
+      roomCode: generatedCode, 
+      username,
+      difficulty: selectedDifficulty 
+    });
   };
 
   const sendMessage = () => {
@@ -352,7 +366,30 @@ const QuizRoom = () => {
                 value={timeLimit}
                 onChange={(e) => setTimeLimit(Number(e.target.value))}
               />
-              <button className="primary" onClick={createRoom}>Create Battleground!</button>
+              <label>Difficulty Level</label>
+              <div className="difficulty-buttons">
+                <button
+                  className={`difficulty-btn ${selectedDifficulty === 'easy' ? 'active' : ''}`}
+                  onClick={() => setSelectedDifficulty('easy')}
+                >
+                  Easy
+                </button>
+                <button
+                  className={`difficulty-btn ${selectedDifficulty === 'medium' ? 'active' : ''}`}
+                  onClick={() => setSelectedDifficulty('medium')}
+                >
+                  Medium
+                </button>
+                <button
+                  className={`difficulty-btn ${selectedDifficulty === 'hard' ? 'active' : ''}`}
+                  onClick={() => setSelectedDifficulty('hard')}
+                >
+                  Hard
+                </button>
+              </div>
+              <button className="primary" onClick={createRoom} disabled={!selectedDifficulty}>
+                Create Battleground!
+              </button>
             </div>
 
             <div className="join-panel">
@@ -386,11 +423,47 @@ const QuizRoom = () => {
                 <div>Players: {players.length} / {settings.maxPlayers || squadSize}</div>
                 <div>Questions: {settings.numQuestions}</div>
                 <div>Category: {settings.domain}</div>
+                <div>Difficulty: {selectedDifficulty ? selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1) : 'Not Selected'}</div>
                 <div>Time Limit: {settings.timeLimit}s</div>
               </div>
               {isOwner && !quizStarted && (
+                <div className="difficulty-selector">
+                  <h3>Select Difficulty Level:</h3>
+                  <div className="difficulty-buttons">
+                    <button
+                      className={`difficulty-btn ${selectedDifficulty === 'easy' ? 'active' : ''}`}
+                      onClick={() => setSelectedDifficulty('easy')}
+                    >
+                      Easy
+                    </button>
+                    <button
+                      className={`difficulty-btn ${selectedDifficulty === 'medium' ? 'active' : ''}`}
+                      onClick={() => setSelectedDifficulty('medium')}
+                    >
+                      Medium
+                    </button>
+                    <button
+                      className={`difficulty-btn ${selectedDifficulty === 'hard' ? 'active' : ''}`}
+                      onClick={() => setSelectedDifficulty('hard')}
+                    >
+                      Hard
+                    </button>
+                  </div>
+                </div>
+              )}
+              {!isOwner && !quizStarted && selectedDifficulty && (
+                <div className="difficulty-display">
+                  <p>Quiz Difficulty: <strong>{selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1)}</strong></p>
+                  <p className="waiting-text">Waiting for host to start...</p>
+                </div>
+              )}
+              {isOwner && !quizStarted && (
                 <div className="owner-controls">
-                  <button className="accent" onClick={startQuiz} disabled={players.length < 1}>
+                  <button 
+                    className="accent" 
+                    onClick={startQuiz} 
+                    disabled={players.length < 1 || !selectedDifficulty}
+                  >
                     Start Quiz!
                   </button>
                 </div>

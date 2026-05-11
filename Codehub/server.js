@@ -14,6 +14,7 @@ import codingRoutes from './server/routes/codingRoutes.js';
 import UserSettings from './server/models/UserSettings.js';
 import QuizScore from './server/models/QuizScore.js';
 import Question from './server/models/Question.js';
+import QuizBattleQuestion from './server/models/QuizBattleQuestion.js';
 
 dotenv.config();
 
@@ -134,12 +135,12 @@ quizConnection.on('error', (err) => {
 
 const QuizScoreQuiz = quizConnection.model('QuizScore', QuizScore.schema.clone());
 const UserSettingsQuiz = quizConnection.model('UserSettings', UserSettings.schema.clone(), 'quizusersettings');
-const QuestionQuiz = quizConnection.model('QuizQuestion', Question.schema.clone(), 'questions');
+const QuizBattleQuestionQuiz = quizConnection.model('QuizBattleQuestion', QuizBattleQuestion.schema.clone(), 'questions');
 
 const { registerQuizSocket } = await import('./server/quizSocket.js');
 registerQuizSocket(io, {
-  PrerequisiteQuestion: QuestionQuiz,
-  Question: QuestionQuiz,
+  PrerequisiteQuestion: QuizBattleQuestionQuiz,
+  Question: QuizBattleQuestionQuiz,
   QuizScore: QuizScoreQuiz,
 });
 

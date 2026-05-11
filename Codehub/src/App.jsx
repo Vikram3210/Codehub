@@ -23,6 +23,7 @@ import PracticeOptions from './pages/PracticeOptions.jsx'
 import CodingPractice from './pages/CodingPractice.jsx'
 import Problems from './pages/Problems.jsx'
 import QuizDashboard from './pages/quiz/QuizDashboard.jsx'
+import QuizBriefing from './pages/quiz/QuizBriefing.jsx'
 import QuizRoom from './pages/quiz/QuizRoom.jsx'
 import QuizLeaderboard from './pages/quiz/QuizLeaderboard.jsx'
 import QuizProfile from './pages/quiz/QuizProfile.jsx'
@@ -88,6 +89,10 @@ function App() {
             <Route
               path="/quiz/dashboard"
               element={<ProtectedRoute><QuizDashboard /></ProtectedRoute>}
+            />
+            <Route
+              path="/quiz/briefing"
+              element={<ProtectedRoute><QuizBriefing /></ProtectedRoute>}
             />
             <Route
               path="/quiz/room"

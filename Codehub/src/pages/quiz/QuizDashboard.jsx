@@ -26,7 +26,7 @@ const QuizDashboard = () => {
   const open = (section) => {
     switch (section) {
       case 'quiz':
-        navigate('/quiz/room');
+        navigate('/quiz/briefing');
         break;
       case 'leaderboard':
         navigate('/quiz/leaderboard');

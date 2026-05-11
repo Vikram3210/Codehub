@@ -18,19 +18,27 @@ function generateRoomCode() {
 /**
  * IIT_project questions format: { question, options[], answer (0-based index), domain }.
  */
-async function fetchQuestions(count, models, domainFilter) {
+async function fetchQuestions(count, models, domainFilter, difficultyFilter) {
   const { Question: Q } = models || {};
   if (!Q) return [];
   const num = Math.min(Math.max(Number(count) || 10, 1), 50);
   const match = {};
+  
   if (domainFilter && domainFilter !== 'Mixed') {
     match.domain = domainFilter; // Verbal, Quant, Logical
   }
+  
+  if (difficultyFilter && ['easy', 'medium', 'hard'].includes(difficultyFilter.toLowerCase())) {
+    // Case-insensitive difficulty match
+    match.difficulty = { $regex: `^${difficultyFilter}$`, $options: 'i' };
+  }
+  
   const list = await Q.aggregate([
     { $match: Object.keys(match).length ? match : {} },
     { $sample: { size: num } },
-    { $project: { question: 1, options: 1, answer: 1, domain: 1 } },
+    { $project: { question: 1, options: 1, answer: 1, domain: 1, difficulty: 1 } },
   ]);
+  
   return list.map((q) => {
     const options = Array.isArray(q.options) ? q.options : [];
     const answer = q.answer;
@@ -71,6 +79,16 @@ export function registerQuizSocket(io, quizModels = {}) {
     socket.on('createRoom', async (payload, callback) => {
       const username = payload?.username || 'Player';
       const settings = payload?.settings || {};
+      
+      // Validate difficulty
+      const difficulty = settings.difficulty ? settings.difficulty.toLowerCase() : null;
+      if (difficulty && !['easy', 'medium', 'hard'].includes(difficulty)) {
+        if (typeof callback === 'function') {
+          callback({ success: false, message: 'Invalid difficulty. Must be easy, medium, or hard.' });
+        }
+        return;
+      }
+      
       const roomCode = generateRoomCode();
       const room = {
         roomCode,
@@ -82,6 +100,7 @@ export function registerQuizSocket(io, quizModels = {}) {
           maxPlayers: Math.min(20, Math.max(2, Number(settings.maxPlayers) || 10)),
           numQuestions: Math.min(50, Math.max(1, Number(settings.numQuestions) || 10)),
           timeLimit: Math.min(120, Math.max(10, Number(settings.timeLimit) || 20)),
+          difficulty: difficulty || 'easy', // Default to easy if not specified
         },
         questions: [],
         currentQuestionIndex: 0,
@@ -137,6 +156,7 @@ export function registerQuizSocket(io, quizModels = {}) {
     socket.on('startQuiz', async (payload) => {
       const roomCode = payload?.roomCode;
       const username = payload?.username;
+      const difficulty = payload?.difficulty;
       const room = roomCode ? rooms.get(roomCode) : null;
 
       if (!room) {
@@ -152,11 +172,22 @@ export function registerQuizSocket(io, quizModels = {}) {
         return;
       }
 
+      // Validate and update difficulty if provided
+      if (difficulty) {
+        const diffValue = difficulty.toLowerCase();
+        if (!['easy', 'medium', 'hard'].includes(diffValue)) {
+          socket.emit('quizError', { message: 'Invalid difficulty. Must be easy, medium, or hard.' });
+          return;
+        }
+        room.settings.difficulty = diffValue;
+      }
+
       try {
         room.questions = await fetchQuestions(
           room.settings.numQuestions,
           quizModels,
-          room.settings.domain
+          room.settings.domain,
+          room.settings.difficulty
         );
       } catch (err) {
         console.error('Fetch questions error:', err);
@@ -165,7 +196,8 @@ export function registerQuizSocket(io, quizModels = {}) {
       }
 
       if (room.questions.length === 0) {
-        socket.emit('quizError', { message: 'No questions available. Add questions to the database.' });
+        const difficultyStr = room.settings.difficulty ? ` (${room.settings.difficulty} difficulty)` : '';
+        socket.emit('quizError', { message: `No questions available${difficultyStr}. Add questions to the database.` });
         return;
       }
 
